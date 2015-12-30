@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>body</key>
+	<string>Level0</string>
+	<key>children</key>
+	<array>
+		<dict>
+			<key>body</key>
+			<string>Level1-0</string>
+			<key>children</key>
+			<array>
+				<dict>
+					<key>body</key>
+					<string>Level2-0</string>
+				</dict>
+				<dict>
+					<key>body</key>
+					<string>New!</string>
+				</dict>
+				<dict>
+					<key>body</key>
+					<string>Level2-1</string>
+				</dict>
+			</array>
+		</dict>
+		<dict>
+			<key>children</key>
+			<array>
+				<dict>
+					<key>body</key>
+					<string>checker</string>
+				</dict>
+			</array>
+			<key>body</key>
+			<string>Level1-1</string>
+		</dict>
+	</array>
+</dict>
+</plist>
