@@ -7,7 +7,16 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
 
 @interface NVTreeNode : NSObject
+
+typedef void(^NodeBlock)(NVTreeNode*);
+
+@property NSString *value;
+@property(weak) NVTreeNode *parent;
+@property NSMutableArray<NVTreeNode*> *children;
+
+- (instancetype)initWithDictionary:(NSDictionary *)dictionary;
 
 @end

@@ -8,19 +8,32 @@
 
 #import "NVGrid.h"
 
-@interface NVPair : NSObject
+@interface NVPair<ObjectType> : NSObject
 
 @property NVCoord key;
-@property id value;
+@property(weak) ObjectType value;
 
 @end
 
-@interface NVGrid() {
-    NSMutableArray<NVPair*> *_items;
+@implementation NVPair
+
+@end
+
+@interface NVGrid<ObjectType>() {
+    NSMutableArray<NVPair<ObjectType>*> *_items;
 }
 @end
 
 @implementation NVGrid
+
+- (instancetype)init {
+    self = [super init];
+    if (self) {
+        _items = [[NSMutableArray alloc] init];
+    }
+    
+    return self;
+}
 
 - (NVCoord)getCoord: (CGPoint)point {
     CGFloat xSteps = point.x / self.cellSize.width;
@@ -71,6 +84,32 @@
     pair.value = object;
 }
 
+- (BOOL)moveObjectFromPoint: (CGPoint)from toPoint: (CGPoint)to isReplace:(BOOL)isReplace{
+    return [self moveObjectFromCoord:[self getCoord:from] toCoord:[self getCoord:to] isReplace:isReplace];
+}
+
+- (BOOL)moveObjectFromCoord: (NVCoord)from toCoord: (NVCoord)to isReplace:(BOOL)isReplace{
+    if (isEqual(from, to))
+        return YES;
+    
+    NVPair *pair = [self getPair:from];
+    
+    if (pair) {
+        NVPair *pairTarget = [self getPair:to];
+        
+        if (pairTarget) {
+            if (isReplace)
+                [_items removeObject:pairTarget];
+            else return NO;
+        }
+        
+        pair.key = to;
+        return YES;
+    }
+    
+    return NO;
+}
+
 - (void)removeObjectInPoint: (CGPoint)point {
     [self removeObjectInCoord:[self getCoord:point]];
 }
@@ -78,7 +117,13 @@
 - (void)removeObjectInCoord: (NVCoord)coord {
     NVPair *pair = [self getPair:coord];
     
-    [_items removeObject:pair];
+    if (pair)
+        [_items removeObject:pair];
+}
+
+- (void)clear {
+    if (_items.count > 0)
+        [_items removeAllObjects];
 }
 
 @end

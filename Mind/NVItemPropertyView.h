@@ -8,6 +8,12 @@
 
 #import <UIKit/UIKit.h>
 
+IB_DESIGNABLE
 @interface NVItemPropertyView : UIView
+
+typedef void(^OnTapBlock)();
+
+@property(copy) OnTapBlock onAddTap;
+@property(copy) OnTapBlock onRemoveTap;
 
 @end
