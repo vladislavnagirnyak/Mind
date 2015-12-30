@@ -38,7 +38,8 @@ typedef enum : NSUInteger {
 @implementation ViewController
 
 - (void)actionWith: (UIGestureRecognizer*)recognizer state:(NVStateControllerEnum)state isStart:(BOOL)start {
-    CGPoint location = [recognizer locationInView:self.view];
+    CGPoint utsfLocation = [recognizer locationInView:self.view];
+    CGPoint location = CGPointApplyAffineTransform(utsfLocation, self.view.transform);
     NVTreeDrawer *target = [self getTargetByPos:location];
     
     _itemProp.hidden = YES;
@@ -75,11 +76,11 @@ typedef enum : NSUInteger {
                     [self actionWith:recognizer state:NVS_RENAME isStart:NO];
                 }
                 
-                if ((_selected = target))
-                    _deltaMove = _selected.position;
-                else _deltaMove = CGPointMake(0, 0); // for translate
-                
-                _deltaMove = CGPointMake(_deltaMove.x - location.x, _deltaMove.y - location.y);
+                if ((_selected = target)) {
+                    _deltaMove = CGPointMake(_selected.position.x - location.x, _selected.position.y - location.y);
+                } else {
+                    _deltaMove = CGPointMake(-utsfLocation.x, -utsfLocation.y);
+                }
             }
             else _selected = nil;
             
@@ -132,7 +133,6 @@ typedef enum : NSUInteger {
 
 - (void)panned:(UIPanGestureRecognizer*)recognizer {
     CGPoint location = [recognizer locationInView:self.view];
-    //location = CGPointApplyAffineTransform(location, self.view.transform);
     
     if (recognizer.state == UIGestureRecognizerStateBegan) {
         [self actionWith:recognizer state:NVS_MOVE_NODE isStart:YES];
@@ -145,6 +145,7 @@ typedef enum : NSUInteger {
         CGPoint point = CGPointMake(location.x + _deltaMove.x, location.y + _deltaMove.y);
     
         if (_selected) {
+            point = CGPointApplyAffineTransform(point, self.view.transform);
             [_selected setPosition:point flags:0];
         }
         else {
