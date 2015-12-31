@@ -39,7 +39,7 @@ typedef enum : NSUInteger {
 
 - (void)actionWith: (UIGestureRecognizer*)recognizer state:(NVStateControllerEnum)state isStart:(BOOL)start {
     CGPoint utsfLocation = [recognizer locationInView:self.view];
-    CGPoint location = CGPointApplyAffineTransform(utsfLocation, self.view.transform);
+    CGPoint location = CGPointApplyAffineTransform(utsfLocation, self.view.layer.affineTransform);
     NVTreeDrawer *target = [self getTargetByPos:location];
     
     _itemProp.hidden = YES;
@@ -47,10 +47,10 @@ typedef enum : NSUInteger {
     switch (state) {
         case NVS_RENAME:
             if (start) {
-                if (recognizer.state == UIGestureRecognizerStateBegan) {
-                    if (!_textField.hidden && _selected)
-                        [self actionWith:recognizer state:NVS_RENAME isStart:NO];
-                    
+                if (!_textField.hidden && _selected)
+                   [self actionWith:recognizer state:NVS_RENAME isStart:NO];
+                
+                if (target) {
                     _textField.hidden = NO;
                     _textField.text = target.node.value;
                     target.label.hidden = YES;
@@ -87,6 +87,10 @@ typedef enum : NSUInteger {
             break;
         case NVS_PROPERTY:
             if (target) {
+                if (!_textField.hidden && _selected) {
+                    [self actionWith:recognizer state:NVS_RENAME isStart:NO];
+                }
+                
                 _itemProp.hidden = NO;
                 [self.view bringSubviewToFront:_itemProp];
                 _itemProp.center = target.position;
@@ -109,11 +113,13 @@ typedef enum : NSUInteger {
 }
 
 - (void)longPressed:(UILongPressGestureRecognizer*)recognizer {
-    [self actionWith:recognizer state:NVS_RENAME isStart:YES];
+    //[self actionWith:recognizer state:NVS_RENAME isStart:YES];
 }
 
 - (void)tapped:(UITapGestureRecognizer*)recognizer {
-    [self actionWith:recognizer state:NVS_RENAME isStart:NO];
+    if (recognizer.state == UIGestureRecognizerStateRecognized) {
+        [self actionWith:recognizer state:NVS_RENAME isStart:YES];
+    } else [self actionWith:recognizer state:NVS_RENAME isStart:NO];
 }
 
 - (NVTreeDrawer*)getTargetByPos: (CGPoint)position {
@@ -128,11 +134,11 @@ typedef enum : NSUInteger {
 }
 
 - (void)doubleTapped:(UITapGestureRecognizer*)recognizer {
-    [self actionWith:recognizer state:NVS_PROPERTY isStart:0];
+    [self actionWith:recognizer state:NVS_PROPERTY isStart:YES];
 }
 
 - (void)panned:(UIPanGestureRecognizer*)recognizer {
-    CGPoint location = [recognizer locationInView:self.view];
+    CGPoint utsfLocation = [recognizer locationInView:self.view];
     
     if (recognizer.state == UIGestureRecognizerStateBegan) {
         [self actionWith:recognizer state:NVS_MOVE_NODE isStart:YES];
@@ -142,22 +148,22 @@ typedef enum : NSUInteger {
         [self actionWith:recognizer state:NVS_MOVE_NODE isStart:NO];
     }
     else {
-        CGPoint point = CGPointMake(location.x + _deltaMove.x, location.y + _deltaMove.y);
-    
         if (_selected) {
-            point = CGPointApplyAffineTransform(point, self.view.transform);
+            CGPoint location = CGPointApplyAffineTransform(utsfLocation, self.view.transform);
+            CGPoint point = CGPointMake(location.x + _deltaMove.x, location.y + _deltaMove.y);
             [_selected setPosition:point flags:0];
         }
         else {
             CGRect frame = self.view.frame;
             
-            self.view.transform = CGAffineTransformTranslate(self.view.transform, point.x, point.y);
+            CGPoint point = CGPointMake(utsfLocation.x + _deltaMove.x, utsfLocation.y + _deltaMove.y);
+            self.view.layer.affineTransform = CGAffineTransformTranslate(self.view.layer.affineTransform, point.x, point.y);
         }
     }
 }
 
 - (void)pinched:(UIPinchGestureRecognizer*)recognizer {
-    CGAffineTransformHelper p = CGAffineTransformHelper(self.view.transform); //previus transformation
+    CGAffineTransformHelper p = CGAffineTransformHelper(self.view.layer.affineTransform); //previus transformation
     if (recognizer.state == UIGestureRecognizerStateBegan) {
         _deltaScale = p.getScale().x;
     }
@@ -167,18 +173,18 @@ typedef enum : NSUInteger {
         scale = 1.0;
     
     p.setScale(CGPointMake(scale, scale));
-    self.view.transform = p;
+    self.view.layer.affineTransform = p;
 }
 
 - (void)rotated:(UIRotationGestureRecognizer*)recognizer {
-    CGAffineTransformHelper p = CGAffineTransformHelper(self.view.transform);
+    CGAffineTransformHelper p = CGAffineTransformHelper(self.view.layer.affineTransform);
     
     if (recognizer.state == UIGestureRecognizerStateBegan) {
         _deltaRotate = p.getRotation();
     }
     
     p.setRotation(recognizer.rotation + _deltaRotate);
-    self.view.transform = p;
+    self.view.layer.affineTransform = p;
 }
 
 - (void)viewDidLoad {
@@ -199,12 +205,15 @@ typedef enum : NSUInteger {
     
     UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapped:)];
     tap.delegate = self;
+    tap.numberOfTapsRequired = 1;
     [self.view addGestureRecognizer:tap];
     
     UITapGestureRecognizer *doubleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(doubleTapped:)];
     doubleTap.delegate = self;
     doubleTap.numberOfTapsRequired = 2;
     [self.view addGestureRecognizer:doubleTap];
+    
+    [tap requireGestureRecognizerToFail:doubleTap];
     
     UIRotationGestureRecognizer *rotation = [[UIRotationGestureRecognizer alloc] initWithTarget:self action:@selector(rotated:)];
     rotation.delegate = self;

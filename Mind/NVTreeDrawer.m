@@ -83,7 +83,7 @@ static double sNVTreeNodeRadius = 50;
     if (!_path) {
         _path = [CAShapeLayer new];
         _path.fillColor = [UIColor blackColor].CGColor;
-        _path.borderWidth = 1.0;
+        _path.borderWidth = 2.0;
     }
     
     return _path;
@@ -106,9 +106,16 @@ static double sNVTreeNodeRadius = 50;
     if (self.parent) {
         UIBezierPath *path = [UIBezierPath new];
         CGPoint parentPos = self.parent.position;
-        [path moveToPoint:CGPointMake(parentPos.x, parentPos.y + sNVTreeNodeRadius)];
-        [path addLineToPoint:CGPointMake(position.x - 1.0, position.y)];
-        [path addLineToPoint:CGPointMake(position.x + 1.0, position.y)];
+        CGPoint dir = CGPointMake(self.position.x - parentPos.x, self.position.y - parentPos.y);
+        CGFloat invLength = sqrt(dir.x * dir.x + dir.y * dir.y);
+        if (invLength) {
+            invLength = 1.0 / invLength;
+        }
+        CGPoint newDir = CGPointMake(dir.x * invLength * sNVTreeNodeRadius, dir.y * invLength * sNVTreeNodeRadius);
+        
+        [path moveToPoint:CGPointMake(parentPos.x + newDir.x, parentPos.y + newDir.y)];
+        [path addLineToPoint:CGPointMake(position.x - newDir.x - 1.0, position.y - newDir.y)];
+        [path addLineToPoint:CGPointMake(position.x - newDir.x + 1.0, position.y - newDir.y)];
         [path closePath];
         
         self.path.path = path.CGPath;
