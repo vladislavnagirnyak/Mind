@@ -16,7 +16,8 @@ typedef void(^NodeBlock)(NVTreeNode*);
 @property NSString *value;
 @property(weak) NVTreeNode *parent;
 @property NSMutableArray<NVTreeNode*> *children;
+@property size_t level;
 
-- (instancetype)initWithDictionary:(NSDictionary *)dictionary;
+- (instancetype)initWithDictionary:(NSDictionary *)dictionary inRoot:(NVTreeNode*)root;
 
 @end

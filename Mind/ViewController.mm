@@ -12,6 +12,8 @@
 #import "CGAffineTransformHelper.hpp"
 #import "NVGrid.h"
 #import "NVItemPropertyView.h"
+#import <CoreGraphics/CoreGraphics.h>
+#import "NVStrategyDraw.h"
 
 typedef enum : NSUInteger {
     NVS_RENAME,
@@ -21,6 +23,7 @@ typedef enum : NSUInteger {
 } NVStateControllerEnum;
 
 @interface ViewController () <UIGestureRecognizerDelegate> {
+    UIScrollView *_rootView;
     NVTreeNode *_root;
     NVTreeDrawer *_rootDrawer;
     CGFloat _deltaScale;
@@ -38,8 +41,8 @@ typedef enum : NSUInteger {
 @implementation ViewController
 
 - (void)actionWith: (UIGestureRecognizer*)recognizer state:(NVStateControllerEnum)state isStart:(BOOL)start {
-    CGPoint utsfLocation = [recognizer locationInView:self.view];
-    CGPoint location = CGPointApplyAffineTransform(utsfLocation, self.view.layer.affineTransform);
+    CGPoint utsfLocation = [recognizer locationInView:_rootView];
+    CGPoint location = CGPointApplyAffineTransform(utsfLocation, _rootView.layer.affineTransform);
     NVTreeDrawer *target = [self getTargetByPos:location];
     
     _itemProp.hidden = YES;
@@ -79,7 +82,8 @@ typedef enum : NSUInteger {
                 if ((_selected = target)) {
                     _deltaMove = CGPointMake(_selected.position.x - location.x, _selected.position.y - location.y);
                 } else {
-                    _deltaMove = CGPointMake(-utsfLocation.x, -utsfLocation.y);
+                    CGSize s = _rootView.frame.size;
+                    //_deltaMove = CGPointMake(_rootView.contentOffset.x - utsfLocation.x, _rootView.contentOffset.y - utsfLocation.y);
                 }
             }
             else _selected = nil;
@@ -92,7 +96,7 @@ typedef enum : NSUInteger {
                 }
                 
                 _itemProp.hidden = NO;
-                [self.view bringSubviewToFront:_itemProp];
+                [_rootView bringSubviewToFront:_itemProp];
                 _itemProp.center = target.position;
                 
                 _itemProp.onAddTap = ^{
@@ -123,7 +127,7 @@ typedef enum : NSUInteger {
 }
 
 - (NVTreeDrawer*)getTargetByPos: (CGPoint)position {
-    CALayer *target = [self.view.layer hitTest:position];
+    CALayer *target = [_rootView.layer hitTest:position];
     
     if ([target isKindOfClass:[NVTreeDrawer class]])
         return (NVTreeDrawer*)target;
@@ -154,16 +158,22 @@ typedef enum : NSUInteger {
             [_selected setPosition:point flags:0];
         }
         else {
-            CGRect frame = self.view.frame;
+            //if (CGRectContainsRect(_rootView.frame, _rootView.bounds)) {
+            CGSize s = _rootView.frame.size;
+            CGPoint point = CGPointMake(utsfLocation.x - s.width/2 + _deltaMove.x, utsfLocation.y - s.height/2 + _deltaMove.y);
             
-            CGPoint point = CGPointMake(utsfLocation.x + _deltaMove.x, utsfLocation.y + _deltaMove.y);
-            self.view.layer.affineTransform = CGAffineTransformTranslate(self.view.layer.affineTransform, point.x, point.y);
+            //_rootView.contentOffset = point;
+            
+            //_rootView.transform = CGAffineTransformTranslate(_rootView.transform, point.x, point.y);
+            //} else {
+                //self.view.frame = self.view.bounds;
+            //}
         }
     }
 }
 
 - (void)pinched:(UIPinchGestureRecognizer*)recognizer {
-    CGAffineTransformHelper p = CGAffineTransformHelper(self.view.layer.affineTransform); //previus transformation
+    CGAffineTransformHelper p = CGAffineTransformHelper(_rootView.layer.affineTransform); //previus transformation
     if (recognizer.state == UIGestureRecognizerStateBegan) {
         _deltaScale = p.getScale().x;
     }
@@ -173,22 +183,24 @@ typedef enum : NSUInteger {
         scale = 1.0;
     
     p.setScale(CGPointMake(scale, scale));
-    self.view.layer.affineTransform = p;
+    _rootView.layer.affineTransform = p;
 }
 
 - (void)rotated:(UIRotationGestureRecognizer*)recognizer {
-    CGAffineTransformHelper p = CGAffineTransformHelper(self.view.layer.affineTransform);
+    CGAffineTransformHelper p = CGAffineTransformHelper(_rootView.layer.affineTransform);
     
     if (recognizer.state == UIGestureRecognizerStateBegan) {
         _deltaRotate = p.getRotation();
     }
     
     p.setRotation(recognizer.rotation + _deltaRotate);
-    self.view.layer.affineTransform = p;
+    _rootView.layer.affineTransform = p;
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    _rootView = (UIScrollView*)self.view;
+    //_rootView.contentSize = self.view.subviews.firstObject.frame.size;
     
     UIPanGestureRecognizer *pan = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(panned:)];
     pan.delegate = self;
@@ -220,14 +232,16 @@ typedef enum : NSUInteger {
     [self.view addGestureRecognizer:rotation];
     
     NSDictionary *treeDic = [NSDictionary dictionaryWithContentsOfURL:[[NSBundle mainBundle] URLForResource:@"Basic Tree" withExtension:@"plist"]];
-    _root = [[NVTreeNode alloc] initWithDictionary:treeDic];
+    _root = [[NVTreeNode alloc] initWithDictionary:treeDic inRoot:nil];
     
     _grid = [[NVTreeGrid alloc] init];
     _grid.cellSize = CGSizeMake(100, 100);
     
     _rootDrawer = [[NVTreeDrawer alloc] initWithNode:_root onLayer:self.view.layer withGrid:_grid];
     
-    [_rootDrawer drawTopToBottom:CGPointMake(CGRectGetWidth(self.view.frame) / 2.0, 50.0)];
+    NVStrategyDraw *strategy = [[NVStrategyDraw alloc] initWithStart:CGPointMake(CGRectGetWidth(self.view.frame) / 2.0, 50.0) withGrid:_grid];
+    
+    [_rootDrawer draw: strategy];
     
     _itemProp = [[NVItemPropertyView alloc] initWithFrame:_rootDrawer.frame];
     _itemProp.hidden = YES;
@@ -236,7 +250,8 @@ typedef enum : NSUInteger {
     _textField = [[UITextField alloc] initWithFrame:CGRectMake(0, 0, 100, 50)];
     _textField.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
     _textField.textAlignment = NSTextAlignmentCenter;
-    _textField.font = [_textField.font fontWithSize:_rootDrawer.label.fontSize];
+    NSString *fontName = (__bridge NSString *)_rootDrawer.label.font;
+    _textField.font = [UIFont fontWithName:fontName size:_rootDrawer.label.fontSize];
     [self.view addSubview:_textField];
     _textField.hidden = YES;
     

@@ -84,9 +84,26 @@ static double sNVTreeNodeRadius = 50;
         _path = [CAShapeLayer new];
         _path.fillColor = [UIColor blackColor].CGColor;
         _path.borderWidth = 2.0;
+        _path.lineWidth = 5.0;
     }
     
     return _path;
+}
+
+- (void)setRadius:(CGFloat)radius {
+    sNVTreeNodeRadius = radius;
+}
+
+- (CGFloat)radius {
+    return sNVTreeNodeRadius;
+}
+
+- (void)setPadding:(CGFloat)padding {
+    sNVTreeNodePadding = padding;
+}
+
+- (CGFloat)padding {
+    return sNVTreeNodePadding;
 }
 
 - (void)setPosition:(CGPoint)position flags:(NSUInteger)flags {
@@ -165,24 +182,8 @@ static double sNVTreeNodeRadius = 50;
     [self setPosition:position flags:0];
 }
 
-- (void)drawTopToBottom:(CGPoint)inPoint {
-    [self setPosition:inPoint flags:NVTD_CHILD_NOT_UPDATE];
-    [_grid setObject:self inPoint:self.position];
-    
-    NSUInteger childrenCount = _node.children.count;
-    
-    CGFloat xOffset = 0.0;
-    if (childrenCount > 0) {
-        xOffset = - (childrenCount * (sNVTreeNodeRadius + sNVTreeNodePadding) / 2.0 + sNVTreeNodePadding / 2.0);
-    }
-    
-    for (NVTreeDrawer *subDrawer in self.children) {
-        CGPoint newPoint = CGPointMake(inPoint.x + xOffset, inPoint.y + sNVTreeNodeRadius * 2 + sNVTreeNodePadding);
-        
-        [subDrawer drawTopToBottom:newPoint];
-        
-        xOffset += sNVTreeNodeRadius * 2 + sNVTreeNodePadding;
-    }
+- (void)draw:(id<NVStrategyDraw>)data {
+    [data draw:self];
 }
 
 - (void) dealloc {

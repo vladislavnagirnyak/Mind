@@ -9,6 +9,7 @@
 #import <QuartzCore/QuartzCore.h>
 #import "NVTreeNode.h"
 #import "NVGrid.h"
+#import "NVStrategyDraw.h"
 
 typedef enum : NSUInteger {
     NVTD_CHILD_NOT_UPDATE_POS = 1,
@@ -25,6 +26,8 @@ typedef NVGrid<NVTreeDrawer*> NVTreeGrid;
 @property(weak) NVTreeDrawer *parent;
 @property NVTreeNode *node;
 @property (readonly) CATextLayer *label;
+@property CGFloat radius;
+@property CGFloat padding;
 
 - (instancetype)initWithNode:(NVTreeNode*)node onLayer:(CALayer*)onLayer withGrid:(NVTreeGrid*)grid;
 - (void)setPosition:(CGPoint)location flags:(NSUInteger)flags;
@@ -32,6 +35,6 @@ typedef NVGrid<NVTreeDrawer*> NVTreeGrid;
 - (void)addChild;
 - (void)remove;
 
-- (void)drawTopToBottom:(CGPoint)inPoint;
+- (void)draw:(id<NVStrategyDraw>)data;
 
 @end
