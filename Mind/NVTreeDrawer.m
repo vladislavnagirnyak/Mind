@@ -109,14 +109,15 @@ static double sNVTreeNodeRadius = 50;
 
 - (NVTreeDrawer*)findRoot {
     NVTreeDrawer *root = self.parent;
-    while (root) {
+    while (root.parent) {
         root = root.parent;
     }
     return root;
 }
 
-- (void)intersectionTest: (NVTreeDrawer*)item withRay: (CGPoint)ray action: (void (^)())action {
-    CGPoint dir = VSub(item.position, self.position);
+- (void)intersectionTest: (NVTreeDrawer*)item action: (void (^)(NVTreeDrawer*drawer))action {
+    
+    /*CGPoint dir = VSub(item.position, self.position);
     CGPoint normDir = VNormalize(dir);
     
     CGPoint pR = VRotate(VNegate(normDir), M_PI_2);
@@ -127,11 +128,18 @@ static double sNVTreeNodeRadius = 50;
         if (VLength(pR) <= VLength(ray)) {
             NSLog(@"intersect");
             action();
-        }
+        }*/
     
-    /*for (NVTreeDrawer *child in item.children) {
-        [self intersectionTest:child withRay:ray action:action];
-    }*/
+    if (self != item && item != self.parent) {
+        if (IntersectCircleRay(C(item.position, item.radius), R(self.position, VSub(self.parent.position, self.position)))) {
+            NSLog(@"intersect");
+            action(item);
+        }
+    }
+    
+    for (NVTreeDrawer *child in item.children) {
+        [self intersectionTest:child action:action];
+    }
 }
 
 - (void)setPosition:(CGPoint)position flags:(NSUInteger)flags {
@@ -152,20 +160,22 @@ static double sNVTreeNodeRadius = 50;
         UIBezierPath *path = [UIBezierPath new];
         CGPoint parentPos = self.parent.position;
         CGPoint dir = VSub(parentPos, self.position);
+        CGPoint normDir = VNormalize(dir);
         CGPoint newDir = VMulN(VNormalize(dir), sNVTreeNodeRadius);
+        
+        [path moveToPoint:VSub(parentPos, newDir)];
         
         NVTreeDrawer *root = [self findRoot];
         
-        unsigned long index = [self.parent.children indexOfObject:self] + 1;
-        if (self.parent.children.count > index) {
-            root = [self.parent.children objectAtIndex:index];
-            [self intersectionTest:root withRay:dir action:^{
-            }];
-        }
+        //root = self.parent;
+        [self intersectionTest:root action:^(NVTreeDrawer*item){
+            [path addLineToPoint:VAdd(item.position, VMulN(normDir, item.radius))];
+            [path addQuadCurveToPoint:VAdd(item.position, VMulN(VNegate(normDir), item.radius)) controlPoint:VMulN(VRotate(normDir, M_PI_2), 200 )];
+        }];
         
-        [path moveToPoint:VSub(parentPos, newDir)];
-        [path addLineToPoint:VAdd(VAdd(position, newDir), V(-1.0, 0))];
+        //[path moveToPoint:VAdd(position, newDir)];
         [path addLineToPoint:VAdd(VAdd(position, newDir), V(1.0, 0))];
+        [path addLineToPoint:VAdd(VAdd(position, newDir), V(-1.0, 0))];
         [path closePath];
         
         self.path.path = path.CGPath;

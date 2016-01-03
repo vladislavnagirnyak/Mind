@@ -68,3 +68,33 @@ CGPoint VDivN(CGPoint v1, CGFloat f) {
 CGPoint VNegate(CGPoint v) {
     return V(-v.x, -v.y);
 }
+
+struct NVCircle NVCircleMake(CGPoint center, CGFloat radius) {
+    struct NVCircle circle;
+    circle.center = center;
+    circle.radius = radius;
+    return circle;
+}
+
+struct NVRay NVRayMake(CGPoint position, CGPoint direction) {
+    struct NVRay ray;
+    ray.position = position;
+    ray.direction = direction;
+    return ray;
+}
+
+int IntersectCircleRay(struct NVCircle circle, struct NVRay ray) {
+    CGPoint dir = VSub(circle.center, ray.position);
+    
+    float beta = VAngle(ray.direction, dir);
+    float dirLength = VLength(dir);
+    CGFloat lengthAlpha = dirLength * sin(beta); // / (sin(M_PI_2) == 1)
+    
+    if (lengthAlpha < circle.radius &&
+        VDot(dir, ray.direction) > 0 &&
+        dirLength - circle.radius < VLength(ray.direction)) {
+        return 1;
+    }
+    
+    return 0;
+}

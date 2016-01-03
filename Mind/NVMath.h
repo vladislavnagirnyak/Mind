@@ -12,10 +12,17 @@
 #include <QuartzCore/QuartzCore.h>
 
 #define V(x, y) CGPointMake((x), (y))
+#define R(p, d) NVRayMake((p), (d))
+#define C(c, r) NVCircleMake((c), (r))
 
 struct NVCircle {
     CGPoint center;
     CGFloat radius;
+};
+
+struct NVRay {
+    CGPoint position;
+    CGPoint direction;
 };
 
 CGPoint VNormalize(CGPoint v);
@@ -31,5 +38,10 @@ CGPoint VNegate(CGPoint v);
 
 CGPoint VMulN(CGPoint v1, CGFloat f);
 CGPoint VDivN(CGPoint v1, CGFloat f);
+
+struct NVCircle NVCircleMake(CGPoint center, CGFloat radius);
+struct NVRay NVRayMake(CGPoint position, CGPoint direction);
+
+int IntersectCircleRay(struct NVCircle circle, struct NVRay ray);
 
 #endif /* NVMath_h */
