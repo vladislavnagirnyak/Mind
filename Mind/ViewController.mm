@@ -14,6 +14,7 @@
 #import "NVItemPropertyView.h"
 #import <CoreGraphics/CoreGraphics.h>
 #import "NVStrategyDraw.h"
+#import "NVMath.c"
 
 typedef enum : NSUInteger {
     NVS_RENAME,
@@ -80,7 +81,7 @@ typedef enum : NSUInteger {
                 }
                 
                 if ((_selected = target)) {
-                    _deltaMove = CGPointMake(_selected.position.x - location.x, _selected.position.y - location.y);
+                    _deltaMove = VSub(_selected.position, location);
                 } else {
                     CGSize s = _rootView.frame.size;
                     //_deltaMove = CGPointMake(_rootView.contentOffset.x - utsfLocation.x, _rootView.contentOffset.y - utsfLocation.y);
@@ -90,20 +91,20 @@ typedef enum : NSUInteger {
             
             break;
         case NVS_PROPERTY:
+            if (!_textField.hidden && _selected) {
+                [self actionWith:recognizer state:NVS_RENAME isStart:NO];
+            }
             if (target) {
-                if (!_textField.hidden && _selected) {
-                    [self actionWith:recognizer state:NVS_RENAME isStart:NO];
-                }
-                
                 _itemProp.hidden = NO;
                 [_rootView bringSubviewToFront:_itemProp];
                 _itemProp.center = target.position;
                 
+                __weak typeof(_itemProp) wProp = _itemProp;
+                
                 _itemProp.onAddTap = ^{
                     [target addChild];
+                    wProp.hidden = YES;
                 };
-                
-                __weak typeof(_itemProp) wProp = _itemProp;
                 
                 _itemProp.onRemoveTap = ^{
                     [target remove];
@@ -121,9 +122,7 @@ typedef enum : NSUInteger {
 }
 
 - (void)tapped:(UITapGestureRecognizer*)recognizer {
-    if (recognizer.state == UIGestureRecognizerStateRecognized) {
-        [self actionWith:recognizer state:NVS_RENAME isStart:YES];
-    } else [self actionWith:recognizer state:NVS_RENAME isStart:NO];
+    [self actionWith:recognizer state:NVS_PROPERTY isStart:YES];
 }
 
 - (NVTreeDrawer*)getTargetByPos: (CGPoint)position {
@@ -138,7 +137,7 @@ typedef enum : NSUInteger {
 }
 
 - (void)doubleTapped:(UITapGestureRecognizer*)recognizer {
-    [self actionWith:recognizer state:NVS_PROPERTY isStart:YES];
+    [self actionWith:recognizer state:NVS_RENAME isStart:YES];
 }
 
 - (void)panned:(UIPanGestureRecognizer*)recognizer {
@@ -154,8 +153,7 @@ typedef enum : NSUInteger {
     else {
         if (_selected) {
             CGPoint location = CGPointApplyAffineTransform(utsfLocation, self.view.transform);
-            CGPoint point = CGPointMake(location.x + _deltaMove.x, location.y + _deltaMove.y);
-            [_selected setPosition:point flags:0];
+            [_selected setPosition:VAdd(location, _deltaMove) flags:0];
         }
         else {
             //if (CGRectContainsRect(_rootView.frame, _rootView.bounds)) {
@@ -182,7 +180,7 @@ typedef enum : NSUInteger {
     if (scale < 1.0)
         scale = 1.0;
     
-    p.setScale(CGPointMake(scale, scale));
+    p.setScale(V(scale, scale));
     _rootView.layer.affineTransform = p;
 }
 
@@ -194,13 +192,14 @@ typedef enum : NSUInteger {
     }
     
     p.setRotation(recognizer.rotation + _deltaRotate);
-    _rootView.layer.affineTransform = p;
+    //_rootView.layer.affineTransform = p;
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
     _rootView = (UIScrollView*)self.view;
-    //_rootView.contentSize = self.view.subviews.firstObject.frame.size;
+    _rootView.contentSize = CGSizeMake(1000, 1000);
+    _rootView.scrollEnabled = YES;
     
     UIPanGestureRecognizer *pan = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(panned:)];
     pan.delegate = self;
@@ -239,9 +238,10 @@ typedef enum : NSUInteger {
     
     _rootDrawer = [[NVTreeDrawer alloc] initWithNode:_root onLayer:self.view.layer withGrid:_grid];
     
-    NVStrategyDraw *strategy = [[NVStrategyDraw alloc] initWithStart:CGPointMake(CGRectGetWidth(self.view.frame) / 2.0, 50.0) withGrid:_grid];
+    NVStrategyDraw *strategy = [[NVStrategyDraw alloc] initWithStart:V(CGRectGetWidth(self.view.frame) / 2.0, 50.0) withGrid:_grid];
     
-    [_rootDrawer draw: strategy];
+    _rootDrawer.strategy = strategy;
+    [_rootDrawer draw];
     
     _itemProp = [[NVItemPropertyView alloc] initWithFrame:_rootDrawer.frame];
     _itemProp.hidden = YES;

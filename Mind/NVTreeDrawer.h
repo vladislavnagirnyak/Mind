@@ -25,16 +25,16 @@ typedef NVGrid<NVTreeDrawer*> NVTreeGrid;
 @property NSMutableArray *children;
 @property(weak) NVTreeDrawer *parent;
 @property NVTreeNode *node;
-@property (readonly) CATextLayer *label;
+@property(readonly) CATextLayer *label;
 @property CGFloat radius;
 @property CGFloat padding;
+@property id<NVStrategyDraw> strategy;
 
 - (instancetype)initWithNode:(NVTreeNode*)node onLayer:(CALayer*)onLayer withGrid:(NVTreeGrid*)grid;
 - (void)setPosition:(CGPoint)location flags:(NSUInteger)flags;
-
 - (void)addChild;
 - (void)remove;
 
-- (void)draw:(id<NVStrategyDraw>)data;
+- (void)draw;
 
 @end

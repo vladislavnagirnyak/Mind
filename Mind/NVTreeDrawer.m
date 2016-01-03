@@ -9,6 +9,7 @@
 #import "NVTreeDrawer.h"
 #import "NVTreeNode.h"
 #import <UIKit/UIKit.h>
+#import "NVMath.h"
 
 static double sNVTreeNodePadding = 20;
 static double sNVTreeNodeRadius = 50;
@@ -106,8 +107,39 @@ static double sNVTreeNodeRadius = 50;
     return sNVTreeNodePadding;
 }
 
+- (NVTreeDrawer*)findRoot {
+    NVTreeDrawer *root = self.parent;
+    while (root) {
+        root = root.parent;
+    }
+    return root;
+}
+
+- (void)intersectionTest: (NVTreeDrawer*)item withRay: (CGPoint)ray action: (void (^)())action {
+    CGPoint dir = VSub(item.position, self.position);
+    CGPoint normDir = VNormalize(dir);
+    
+    CGPoint pR = VMulN(VRotate(VNegate(normDir), M_PI_2), sNVTreeNodeRadius);
+    pR = VSub(VAdd(item.position, pR), self.position);
+    CGFloat aRadius = VAngle(dir, pR);
+    CGFloat aToRay = VAngle(dir, ray);
+    
+    CGFloat l1 = VLength(pR);
+    CGFloat l2 = VLength(ray);
+    
+    if (aToRay < aRadius)
+        //if (VLength(pR) <= VLength(ray)) {
+            NSLog(@"toRay = %.4f, aRadius = %.4f", aToRay, aRadius);
+            action();
+        //}
+    
+    for (NVTreeDrawer *child in item.children) {
+        [self intersectionTest:child withRay:ray action:action];
+    }
+}
+
 - (void)setPosition:(CGPoint)position flags:(NSUInteger)flags {
-    CGPoint delta = CGPointMake(position.x - self.position.x, position.y - self.position.y);
+    CGPoint delta = VSub(position, self.position);
     
     NVCoord coord = [_grid getCoord:self.position];
     
@@ -123,16 +155,17 @@ static double sNVTreeNodeRadius = 50;
     if (self.parent) {
         UIBezierPath *path = [UIBezierPath new];
         CGPoint parentPos = self.parent.position;
-        CGPoint dir = CGPointMake(self.position.x - parentPos.x, self.position.y - parentPos.y);
-        CGFloat invLength = sqrt(dir.x * dir.x + dir.y * dir.y);
-        if (invLength) {
-            invLength = 1.0 / invLength;
-        }
-        CGPoint newDir = CGPointMake(dir.x * invLength * sNVTreeNodeRadius, dir.y * invLength * sNVTreeNodeRadius);
+        CGPoint dir = VSub(parentPos, self.position);
+        CGPoint newDir = VMulN(VNormalize(dir), sNVTreeNodeRadius);
         
-        [path moveToPoint:CGPointMake(parentPos.x + newDir.x, parentPos.y + newDir.y)];
-        [path addLineToPoint:CGPointMake(position.x - newDir.x - 1.0, position.y - newDir.y)];
-        [path addLineToPoint:CGPointMake(position.x - newDir.x + 1.0, position.y - newDir.y)];
+        NVTreeDrawer *root = [self findRoot];
+        
+        [self intersectionTest:root withRay:dir action:^{
+        }];
+        
+        [path moveToPoint:VSub(parentPos, newDir)];
+        [path addLineToPoint:VAdd(VAdd(position, newDir), V(-1.0, 0))];
+        [path addLineToPoint:VAdd(VAdd(position, newDir), V(1.0, 0))];
         [path closePath];
         
         self.path.path = path.CGPath;
@@ -142,12 +175,19 @@ static double sNVTreeNodeRadius = 50;
         return;
         
     for (NVTreeDrawer *item in self.children) {
-        CGPoint newPoint = CGPointMake(item.position.x + delta.x, item.position.y + delta.y);
+        CGPoint newPoint = VAdd(item.position, delta);
         
         if (flags & NVTD_CHILD_NOT_UPDATE_POS)
             newPoint = item.position;
         
         [item setPosition:newPoint flags:flags];
+    }
+}
+
+- (void)setStrategy:(id<NVStrategyDraw>)strategy {
+    _strategy = strategy;
+    for (NVTreeDrawer *item in self.children) {
+        item.strategy = strategy;
     }
 }
 
@@ -160,9 +200,9 @@ static double sNVTreeNodeRadius = 50;
     
     [self.children addObject:childDrawer];
     childDrawer.parent = self;
+    childDrawer.strategy = self.strategy;
     
-    CGPoint newPoint = CGPointMake(self.position.x, self.position.y + sNVTreeNodeRadius * 2 + sNVTreeNodePadding);
-    [childDrawer setPosition:newPoint flags:0];
+    [self.strategy addChild:childDrawer];
 }
 
 - (void)remove {
@@ -182,8 +222,9 @@ static double sNVTreeNodeRadius = 50;
     [self setPosition:position flags:0];
 }
 
-- (void)draw:(id<NVStrategyDraw>)data {
-    [data draw:self];
+- (void)draw {
+    if (self.strategy)
+        [self.strategy draw:self];
 }
 
 - (void) dealloc {

@@ -29,6 +29,10 @@
     return self;
 }
 
+-(void)addChild:(NVTreeDrawer *)child {
+    CGPoint newPoint = CGPointMake(child.parent.position.x, child.parent.position.y + child.radius * 2 + child.padding);
+    [child setPosition:newPoint flags:0];
+}
 
 -(void)draw:(NVTreeDrawer*)data {
     [self buildLevelMap:data withStart:data.node.level];

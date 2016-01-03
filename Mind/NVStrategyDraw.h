@@ -13,6 +13,7 @@
 @protocol NVStrategyDraw <NSObject>
 
 -(void)draw:(id)data;
+-(void)addChild:(id)child;
 
 @end
 
@@ -22,5 +23,6 @@
 
 -(instancetype)initWithStart: (CGPoint)point withGrid:(NVGrid*)grid;
 -(void)draw:(NVTreeDrawer*)data;
+-(void)addChild:(NVTreeDrawer*)child;
 
 @end
