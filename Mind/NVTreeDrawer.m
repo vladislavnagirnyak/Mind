@@ -83,9 +83,8 @@ static double sNVTreeNodeRadius = 50;
 - (CAShapeLayer *)path {
     if (!_path) {
         _path = [CAShapeLayer new];
-        _path.fillColor = [UIColor blackColor].CGColor;
-        _path.borderWidth = 2.0;
-        _path.lineWidth = 5.0;
+        _path.lineWidth = 1.0;
+        _path.strokeColor = [UIColor blackColor].CGColor;
     }
     
     return _path;
@@ -132,7 +131,6 @@ static double sNVTreeNodeRadius = 50;
     
     if (self != item && item != self.parent) {
         if (IntersectCircleRay(C(item.position, item.radius), R(self.position, VSub(self.parent.position, self.position)))) {
-            NSLog(@"intersect");
             action(item);
         }
     }
@@ -159,24 +157,23 @@ static double sNVTreeNodeRadius = 50;
     if (self.parent) {
         UIBezierPath *path = [UIBezierPath new];
         CGPoint parentPos = self.parent.position;
-        CGPoint dir = VSub(parentPos, self.position);
+        CGPoint dir = VSub(self.position, parentPos);
         CGPoint normDir = VNormalize(dir);
-        CGPoint newDir = VMulN(VNormalize(dir), sNVTreeNodeRadius);
         
-        [path moveToPoint:VSub(parentPos, newDir)];
+        [path moveToPoint:VAdd(parentPos, VMulN(normDir, self.parent.radius))];
         
         NVTreeDrawer *root = [self findRoot];
         
-        //root = self.parent;
         [self intersectionTest:root action:^(NVTreeDrawer*item){
-            [path addLineToPoint:VAdd(item.position, VMulN(normDir, item.radius))];
-            [path addQuadCurveToPoint:VAdd(item.position, VMulN(VNegate(normDir), item.radius)) controlPoint:VMulN(VRotate(normDir, M_PI_2), 200 )];
+            CGPoint p = VSub(item.position, VMulN(normDir, item.radius));
+            [path addLineToPoint:p];
+            [path moveToPoint:p];
+            p = VAdd(item.position, VMulN(normDir, item.radius));
+            [path addQuadCurveToPoint:p controlPoint:VMulN(VRotate(normDir, M_PI_2), 100 )];
+            [path moveToPoint:p];
         }];
         
-        //[path moveToPoint:VAdd(position, newDir)];
-        [path addLineToPoint:VAdd(VAdd(position, newDir), V(1.0, 0))];
-        [path addLineToPoint:VAdd(VAdd(position, newDir), V(-1.0, 0))];
-        [path closePath];
+        [path addLineToPoint:VAdd(self.position, VMulN(VNegate(normDir), self.radius))];
         
         self.path.path = path.CGPath;
     }

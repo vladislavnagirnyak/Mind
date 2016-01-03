@@ -43,5 +43,6 @@ struct NVCircle NVCircleMake(CGPoint center, CGFloat radius);
 struct NVRay NVRayMake(CGPoint position, CGPoint direction);
 
 int IntersectCircleRay(struct NVCircle circle, struct NVRay ray);
+int IntersectCircleCircle(struct NVCircle circle1, struct NVCircle circle2);
 
 #endif /* NVMath_h */

@@ -98,3 +98,7 @@ int IntersectCircleRay(struct NVCircle circle, struct NVRay ray) {
     
     return 0;
 }
+
+int IntersectCircleCircle(struct NVCircle circle1, struct NVCircle circle2) {
+    return VLength(VSub(circle1.center, circle2.center)) < circle1.radius + circle2.radius;
+}
