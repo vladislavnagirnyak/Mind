@@ -13,6 +13,11 @@
 
 #define V(x, y) CGPointMake((x), (y))
 
+struct NVCircle {
+    CGPoint center;
+    CGFloat radius;
+};
+
 CGPoint VNormalize(CGPoint v);
 CGPoint VRotate(CGPoint v, CGFloat angle);
 CGFloat VAngle(CGPoint v1, CGPoint v2);

@@ -119,23 +119,19 @@ static double sNVTreeNodeRadius = 50;
     CGPoint dir = VSub(item.position, self.position);
     CGPoint normDir = VNormalize(dir);
     
-    CGPoint pR = VMulN(VRotate(VNegate(normDir), M_PI_2), sNVTreeNodeRadius);
+    CGPoint pR = VRotate(VNegate(normDir), M_PI_2);
+    pR = VMulN(pR, item.radius);
     pR = VSub(VAdd(item.position, pR), self.position);
-    CGFloat aRadius = VAngle(dir, pR);
-    CGFloat aToRay = VAngle(dir, ray);
     
-    CGFloat l1 = VLength(pR);
-    CGFloat l2 = VLength(ray);
-    
-    if (aToRay < aRadius)
-        //if (VLength(pR) <= VLength(ray)) {
-            NSLog(@"toRay = %.4f, aRadius = %.4f", aToRay, aRadius);
+    if (VAngle(dir, ray) < VAngle(dir, pR))
+        if (VLength(pR) <= VLength(ray)) {
+            NSLog(@"intersect");
             action();
-        //}
+        }
     
-    for (NVTreeDrawer *child in item.children) {
+    /*for (NVTreeDrawer *child in item.children) {
         [self intersectionTest:child withRay:ray action:action];
-    }
+    }*/
 }
 
 - (void)setPosition:(CGPoint)position flags:(NSUInteger)flags {
@@ -160,8 +156,12 @@ static double sNVTreeNodeRadius = 50;
         
         NVTreeDrawer *root = [self findRoot];
         
-        [self intersectionTest:root withRay:dir action:^{
-        }];
+        unsigned long index = [self.parent.children indexOfObject:self] + 1;
+        if (self.parent.children.count > index) {
+            root = [self.parent.children objectAtIndex:index];
+            [self intersectionTest:root withRay:dir action:^{
+            }];
+        }
         
         [path moveToPoint:VSub(parentPos, newDir)];
         [path addLineToPoint:VAdd(VAdd(position, newDir), V(-1.0, 0))];

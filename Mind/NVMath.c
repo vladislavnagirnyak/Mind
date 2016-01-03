@@ -17,18 +17,19 @@ CGPoint VNormalize(CGPoint v) {
 }
 
 CGPoint VRotate(CGPoint v, CGFloat angle) {
-    v.x = v.x * cos(angle) - v.y * sin(angle);
-    v.y = v.y * cos(angle) + v.x * sin(angle);
-    return v;
+    return V(v.x * cos(angle) - v.y * sin(angle),
+             v.y * cos(angle) + v.x * sin(angle));
 }
 
 CGFloat VAngle(CGPoint v1, CGPoint v2) {
     v1 = VNormalize(v1);
     v2 = VNormalize(v2);
     CGFloat cosine = VDot(v1, v2);
+    
     if (cosine < 0) {
-        cosine += M_PI_2;
+        cosine = -cosine;
     }
+    
     return acos(cosine);
 }
 
