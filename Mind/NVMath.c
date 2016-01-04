@@ -26,11 +26,8 @@ CGFloat VAngle(CGPoint v1, CGPoint v2) {
     v2 = VNormalize(v2);
     CGFloat cosine = VDot(v1, v2);
     
-    if (cosine < 0) {
-        cosine = -cosine;
-    }
-    
     return acos(cosine);
+    //return cosine < 0 ? acos(-cosine) + M_PI_2 : acos(cosine);
 }
 
 CGFloat VDot(CGPoint v1, CGPoint v2) {

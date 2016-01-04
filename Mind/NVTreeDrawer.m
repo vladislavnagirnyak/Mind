@@ -177,6 +177,7 @@ static double sNVTreeNodeRadius = 50;
         
         [self intersectionTest:root action:^(NVTreeDrawer*item, CGPoint first, CGPoint second){
             [path addLineToPoint:first];
+            [path moveToPoint:first];
             [path addQuadCurveToPoint:second controlPoint:VAdd(item.position, VMulN(VRotate(normDir, M_PI_2), item.radius * 3))];
             [path moveToPoint:second];
         }];
