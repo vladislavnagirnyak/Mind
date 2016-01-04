@@ -15,15 +15,15 @@
 #define R(p, d) NVRayMake((p), (d))
 #define C(c, r) NVCircleMake((c), (r))
 
-struct NVCircle {
+typedef struct {
     CGPoint center;
     CGFloat radius;
-};
+} NVCircle;
 
-struct NVRay {
+typedef struct {
     CGPoint position;
     CGPoint direction;
-};
+} NVRay;
 
 CGPoint VNormalize(CGPoint v);
 CGPoint VRotate(CGPoint v, CGFloat angle);
@@ -39,10 +39,10 @@ CGPoint VNegate(CGPoint v);
 CGPoint VMulN(CGPoint v1, CGFloat f);
 CGPoint VDivN(CGPoint v1, CGFloat f);
 
-struct NVCircle NVCircleMake(CGPoint center, CGFloat radius);
-struct NVRay NVRayMake(CGPoint position, CGPoint direction);
+NVCircle NVCircleMake(CGPoint center, CGFloat radius);
+NVRay NVRayMake(CGPoint position, CGPoint direction);
 
-int IntersectCircleRay(struct NVCircle circle, struct NVRay ray);
-int IntersectCircleCircle(struct NVCircle circle1, struct NVCircle circle2);
+int IntersectCircleRay(NVCircle circle, NVRay ray);
+int IntersectCircleCircle(NVCircle circle1, NVCircle circle2);
 
 #endif /* NVMath_h */
