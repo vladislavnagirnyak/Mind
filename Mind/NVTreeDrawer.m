@@ -139,8 +139,9 @@ static double sNVTreeNodeRadius = 50;
             float beta = VAngle(ray.direction, dir);
             float dirLength = VLength(dir);
             CGFloat lengthAlpha = dirLength * sin(M_PI_2 - beta);
-            CGPoint first = VAdd(ray.position, VMulN(VNormalize(ray.direction), lengthAlpha - item.radius));
-            CGPoint second = VAdd(ray.position, VMulN(VNormalize(ray.direction), lengthAlpha + item.radius));
+            CGPoint rayDir = VNormalize(ray.direction);
+            CGPoint first = VAdd(ray.position, VMulN(rayDir, lengthAlpha + item.radius));
+            CGPoint second = VAdd(ray.position, VMulN(rayDir, lengthAlpha - item.radius));
             action(item, first, second);
         }
     }
@@ -176,7 +177,6 @@ static double sNVTreeNodeRadius = 50;
         
         [self intersectionTest:root action:^(NVTreeDrawer*item, CGPoint first, CGPoint second){
             [path addLineToPoint:first];
-            //[path moveToPoint:first];
             [path addQuadCurveToPoint:second controlPoint:VAdd(item.position, VMulN(VRotate(normDir, M_PI_2), item.radius * 3))];
             [path moveToPoint:second];
         }];
