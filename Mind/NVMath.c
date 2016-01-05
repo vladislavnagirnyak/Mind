@@ -80,22 +80,81 @@ NVRay NVRayMake(CGPoint position, CGPoint direction) {
     return ray;
 }
 
-int IntersectCircleRay(NVCircle circle, NVRay ray) {
-    CGPoint dir = VSub(circle.center, ray.position);
+NVCoord NVCoordMake(long long x, long long y)
+{
+    NVCoord coord;
+    coord.x = x;
+    coord.y = y;
+    return coord;
+}
+
+NVStraight NVStraightMakeFromRay(NVRay ray)
+{
+    NVStraight s;
+    s.a = ray.direction.y;
+    s.b = -ray.direction.x;
+    s.c = -ray.position.x * ray.direction.y + ray.position.y * ray.direction.x;
+    return s;
+}
+
+int isEqual(NVCoord c1, NVCoord c2)
+{
+    return c1.x == c2.x && c1.y == c2.y;
+}
+
+int inRange(NVCoord coord, NVCoord start, NVCoord end)
+{
+    return coord.x > start.x && coord.x < end.x
+        && coord.y > start.y && coord.y < end.y;
+}
+
+int IntersectCircleRay(NVCircle c, NVRay r)
+{
+    CGPoint dir = VSub(c.center, r.position);
     
-    float beta = VAngle(ray.direction, dir);
+    float beta = VAngle(r.direction, dir);
     float dirLength = VLength(dir);
     CGFloat lengthAlpha = dirLength * sin(beta); // / (sin(M_PI_2) == 1)
     
-    if (lengthAlpha < circle.radius &&
-        VDot(dir, ray.direction) > 0 &&
-        dirLength - circle.radius < VLength(ray.direction)) {
+    if (lengthAlpha < c.radius &&
+        VDot(dir, r.direction) > 0 &&
+        dirLength - c.radius < VLength(r.direction)) {
         return 1;
     }
     
     return 0;
 }
 
-int IntersectCircleCircle(NVCircle circle1, NVCircle circle2) {
-    return VLength(VSub(circle1.center, circle2.center)) < circle1.radius + circle2.radius;
+int IntersectCircleCircle(NVCircle c1, NVCircle c2)
+{
+    return VLength(VSub(c1.center, c2.center)) < c1.radius + c2.radius;
+}
+
+int IntersectCircleStraight(NVCircle cir, NVStraight s, CGPoint *p)
+{
+    double r = cir.radius, a = s.a, b = s.b, c = s.c;
+    c = s.a * cir.center.x + s.b * cir.center.y + c;
+    
+    double x0 = -a*c/(a*a+b*b) + cir.center.x;
+    double y0 = -b*c/(a*a+b*b) + cir.center.y;
+    
+    if (c*c > r*r*(a*a+b*b) + FLT_EPSILON) {
+        return 0;
+    }
+    else if (fabs (c*c - r*r*(a*a+b*b)) < FLT_EPSILON) {
+        *p = V(x0, y0);
+        return 1;
+    }
+    else {
+        double d = r*r - c*c/(a*a+b*b);
+        double mult = sqrt (d / (a*a+b*b));
+        double ax,ay,bx,by;
+        ax = x0 + b * mult;
+        bx = x0 - b * mult;
+        ay = y0 - a * mult;
+        by = y0 + a * mult;
+        *p = V(ax, ay);
+        *(p + 1) = V(bx, by);
+        return 1;
+    }
 }

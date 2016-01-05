@@ -126,17 +126,15 @@
         [_items removeAllObjects];
 }
 
+- (NSArray*)getObjectsInRangeCoord: (NVCoord)start end:(NVCoord)end {
+    NSMutableArray *result = [[NSMutableArray alloc] init];
+    for (NVPair *pair in _items) {
+        if (inRange(pair.key, start, end)) {
+            [result addObject:pair.value];
+        }
+    }
+    return result;
+}
+
 @end
 
-NVCoord NVCoordMake(size_t x, size_t y)
-{
-    NVCoord coord;
-    coord.x = x;
-    coord.y = y;
-    return coord;
-}
-
-bool isEqual(NVCoord c1, NVCoord c2)
-{
-    return c1.x == c2.x && c1.y == c2.y;
-}

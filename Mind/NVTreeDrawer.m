@@ -85,7 +85,7 @@ static double sNVTreeNodeRadius = 50;
         _path = [CAShapeLayer new];
         _path.lineWidth = 1.0;
         _path.strokeColor = [UIColor blackColor].CGColor;
-        //_path.backgroundColor = [UIColor whiteColor].CGColor;
+        _path.zPosition = 1.0;
         _path.fillColor = [UIColor colorWithWhite:1 alpha:0].CGColor;
     }
     
@@ -130,19 +130,26 @@ static double sNVTreeNodeRadius = 50;
             NSLog(@"intersect");
             action();
         }*/
-    
+
     if (self != item && item != self.parent) {
         NVCircle circle = C(item.position, item.radius);
         NVRay ray = R(self.position, VSub(self.parent.position, self.position));
         if (IntersectCircleRay(circle, ray)) {
-            CGPoint dir = VSub(circle.center, ray.position);
+            CGPoint p[2];
+            IntersectCircleStraight(circle, NVStraightMakeFromRay(ray), p);
+            
+            /*CGPoint dir = VSub(circle.center, ray.position);
             float beta = VAngle(ray.direction, dir);
             float dirLength = VLength(dir);
             CGFloat lengthAlpha = dirLength * sin(M_PI_2 - beta);
             CGPoint rayDir = VNormalize(ray.direction);
-            CGPoint first = VAdd(ray.position, VMulN(rayDir, lengthAlpha + item.radius));
-            CGPoint second = VAdd(ray.position, VMulN(rayDir, lengthAlpha - item.radius));
-            action(item, first, second);
+            CGPoint intrRayRad = VAdd(ray.position, VMulN(rayDir, lengthAlpha));
+            CGFloat lengthToIntr = item.radius - VLength(VSub(circle.center, intrRayRad));
+            CGPoint ditToTarget = VNormalize(VSub(VAdd(intrRayRad, VMulN(rayDir, lengthToIntr)), circle.center));
+            
+            CGPoint first = VAdd(circle.center, VMulN(ditToTarget, item.radius));
+            CGPoint second = VAdd(circle.center, VMulN(VNormalize(VSub(VAdd(intrRayRad, VMulN(rayDir, -lengthToIntr)), circle.center)), item.radius));*/
+            action(item, p[1], p[0]);
         }
     }
     

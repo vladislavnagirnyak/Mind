@@ -25,6 +25,17 @@ typedef struct {
     CGPoint direction;
 } NVRay;
 
+typedef struct {
+    CGFloat a;
+    CGFloat b;
+    CGFloat c;
+} NVStraight;
+
+typedef struct {
+    long long x;
+    long long y;
+} NVCoord;
+
 CGPoint VNormalize(CGPoint v);
 CGPoint VRotate(CGPoint v, CGFloat angle);
 CGFloat VAngle(CGPoint v1, CGPoint v2);
@@ -41,8 +52,14 @@ CGPoint VDivN(CGPoint v1, CGFloat f);
 
 NVCircle NVCircleMake(CGPoint center, CGFloat radius);
 NVRay NVRayMake(CGPoint position, CGPoint direction);
+NVCoord NVCoordMake(long long x, long long y);
+NVStraight NVStraightMakeFromRay(NVRay ray);
 
-int IntersectCircleRay(NVCircle circle, NVRay ray);
-int IntersectCircleCircle(NVCircle circle1, NVCircle circle2);
+int isEqual(NVCoord c1, NVCoord c2);
+int inRange(NVCoord coord, NVCoord start, NVCoord end);
+
+int IntersectCircleRay(NVCircle c, NVRay r);
+int IntersectCircleCircle(NVCircle c1, NVCircle c2);
+int IntersectCircleStraight(NVCircle c, NVStraight s, CGPoint *p);
 
 #endif /* NVMath_h */

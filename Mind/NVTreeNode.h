@@ -9,6 +9,23 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 
+@protocol NVNode;
+@class NVNode;
+
+@protocol NVNode //<NSObject>
+
+@property(weak) id<NVNode> parent;
+@property NSArray<id<NVNode>> *children;
+@property size_t level;
+@property(weak) id drawer;
+
+- (instancetype)initWithDictionary:(NSDictionary *)dictionary withParent:(id<NVNode>)parent;
+
+@end
+
+@interface NVNode<__covariant ObjectType:NVNode*> : NSObject<NVNode>
+@end
+
 @interface NVTreeNode : NSObject
 
 typedef void(^NodeBlock)(NVTreeNode*);

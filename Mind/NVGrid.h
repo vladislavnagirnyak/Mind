@@ -8,14 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import <CoreGraphics/CoreGraphics.h>
-
-typedef struct {
-    size_t x;
-    size_t y;
-} NVCoord;
-
-NVCoord NVCoordMake(size_t x, size_t y);
-bool isEqual(NVCoord c1, NVCoord c2);
+#import "NVMath.h"
 
 @interface NVGrid<ObjectType> : NSObject
 
@@ -24,6 +17,7 @@ bool isEqual(NVCoord c1, NVCoord c2);
 - (NVCoord)getCoord: (CGPoint)point;
 - (ObjectType)getObjectInPoint: (CGPoint)point;
 - (ObjectType)getObjectInCoord: (NVCoord)coord;
+- (NSArray<ObjectType>*)getObjectsInRangeCoord: (NVCoord)start end:(NVCoord)end;
 - (void)setObject: (ObjectType)object inPoint: (CGPoint)point;
 - (void)setObject: (ObjectType)object inCoord: (NVCoord)coord;
 - (BOOL)moveObjectFromPoint: (CGPoint)from toPoint: (CGPoint)to isReplace:(BOOL)isReplace;

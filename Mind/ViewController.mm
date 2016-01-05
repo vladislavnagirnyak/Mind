@@ -234,7 +234,8 @@ typedef enum : NSUInteger {
     _root = [[NVTreeNode alloc] initWithDictionary:treeDic inRoot:nil];
     
     _grid = [[NVTreeGrid alloc] init];
-    _grid.cellSize = CGSizeMake(100, 100);
+    CGFloat cellSize = M_SQRT2 * 100;
+    _grid.cellSize = CGSizeMake(cellSize, cellSize);
     
     _rootDrawer = [[NVTreeDrawer alloc] initWithNode:_root onLayer:self.view.layer withGrid:_grid];
     
