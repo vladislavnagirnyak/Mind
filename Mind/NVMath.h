@@ -32,6 +32,18 @@ typedef struct {
 } NVStraight;
 
 typedef struct {
+    CGPoint start;
+    CGPoint control;
+    CGPoint end;
+} NVQuadCurve;
+
+typedef struct {
+    CGPoint start;
+    CGPoint controls[2];
+    CGPoint end;
+} NVCubicCurve;
+
+typedef struct {
     long long x;
     long long y;
 } NVCoord;
@@ -58,7 +70,7 @@ NVStraight NVStraightMakeFromRay(NVRay ray);
 int isEqual(NVCoord c1, NVCoord c2);
 int inRange(NVCoord coord, NVCoord start, NVCoord end);
 
-int IntersectCircleRay(NVCircle c, NVRay r);
+int IntersectCircleRay(NVCircle c, NVRay r, NVQuadCurve *curve);
 int IntersectCircleCircle(NVCircle c1, NVCircle c2);
 int IntersectCircleStraight(NVCircle c, NVStraight s, CGPoint *p);
 

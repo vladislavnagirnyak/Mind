@@ -108,7 +108,7 @@ int inRange(NVCoord coord, NVCoord start, NVCoord end)
         && coord.y > start.y && coord.y < end.y;
 }
 
-int IntersectCircleRay(NVCircle c, NVRay r)
+int IntersectCircleRay(NVCircle c, NVRay r, NVQuadCurve *curve)
 {
     CGPoint dir = VSub(c.center, r.position);
     
@@ -119,6 +119,17 @@ int IntersectCircleRay(NVCircle c, NVRay r)
     if (lengthAlpha < c.radius &&
         VDot(dir, r.direction) > 0 &&
         dirLength - c.radius < VLength(r.direction)) {
+        
+        if (curve) {
+            CGFloat lengthPartGamma = sqrt(c.radius * c.radius - lengthAlpha * lengthAlpha);
+            CGFloat lengthGamma = dirLength * sin(M_PI_2 - beta);
+        
+            CGPoint normRayDir = VNormalize(r.direction);
+        
+            curve->start = VAdd(r.position, VMulN(normRayDir, lengthGamma - lengthPartGamma));
+            curve->end = VAdd(r.position, VMulN(normRayDir, lengthGamma + lengthPartGamma));
+            curve->control = VAdd(c.center, VMulN(VNormalize(VSub(VAdd(r.position, VMulN(normRayDir, lengthGamma)), c.center)), c.radius * 2 - lengthAlpha));
+        }
         return 1;
     }
     

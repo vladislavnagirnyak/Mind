@@ -116,40 +116,19 @@ static double sNVTreeNodeRadius = 50;
     return root;
 }
 
-- (void)intersectionTest: (NVTreeDrawer*)item action: (void (^)(NVTreeDrawer*drawer, CGPoint first, CGPoint second))action {
-    
-    /*CGPoint dir = VSub(item.position, self.position);
-    CGPoint normDir = VNormalize(dir);
-    
-    CGPoint pR = VRotate(VNegate(normDir), M_PI_2);
-    pR = VMulN(pR, item.radius);
-    pR = VSub(VAdd(item.position, pR), self.position);
-    
-    if (VAngle(dir, ray) < VAngle(dir, pR))
-        if (VLength(pR) <= VLength(ray)) {
-            NSLog(@"intersect");
-            action();
-        }*/
+- (void)intersectionTest: (NVTreeDrawer*)item action: (void (^)(NVTreeDrawer*drawer, NVQuadCurve curve))action {
 
     if (self != item && item != self.parent) {
         NVCircle circle = C(item.position, item.radius);
-        NVRay ray = R(self.position, VSub(self.parent.position, self.position));
-        if (IntersectCircleRay(circle, ray)) {
-            CGPoint p[2];
-            IntersectCircleStraight(circle, NVStraightMakeFromRay(ray), p);
-            
-            /*CGPoint dir = VSub(circle.center, ray.position);
-            float beta = VAngle(ray.direction, dir);
-            float dirLength = VLength(dir);
-            CGFloat lengthAlpha = dirLength * sin(M_PI_2 - beta);
-            CGPoint rayDir = VNormalize(ray.direction);
-            CGPoint intrRayRad = VAdd(ray.position, VMulN(rayDir, lengthAlpha));
-            CGFloat lengthToIntr = item.radius - VLength(VSub(circle.center, intrRayRad));
-            CGPoint ditToTarget = VNormalize(VSub(VAdd(intrRayRad, VMulN(rayDir, lengthToIntr)), circle.center));
-            
-            CGPoint first = VAdd(circle.center, VMulN(ditToTarget, item.radius));
-            CGPoint second = VAdd(circle.center, VMulN(VNormalize(VSub(VAdd(intrRayRad, VMulN(rayDir, -lengthToIntr)), circle.center)), item.radius));*/
-            action(item, p[1], p[0]);
+        NVRay ray = R(self.parent.position, VSub(self.position, self.parent.position));
+        NVQuadCurve curve;
+        if (IntersectCircleRay(circle, ray, &curve)) {
+            CGPoint delta = VMulN(VNormalize(ray.direction), circle.radius / 2);
+            curve.start = VSub(curve.start, delta);
+            curve.end = VAdd(curve.end, delta);
+            delta = VMulN(VNormalize(VSub(curve.control, circle.center)), circle.radius / 2);
+            curve.control = VAdd(curve.control, delta);
+            action(item, curve);
         }
     }
     
@@ -182,11 +161,11 @@ static double sNVTreeNodeRadius = 50;
         
         NVTreeDrawer *root = [self findRoot];
         
-        [self intersectionTest:root action:^(NVTreeDrawer*item, CGPoint first, CGPoint second){
-            [path addLineToPoint:first];
-            [path moveToPoint:first];
-            [path addQuadCurveToPoint:second controlPoint:VAdd(item.position, VMulN(VRotate(normDir, M_PI_2), item.radius * 3))];
-            [path moveToPoint:second];
+        [self intersectionTest:root action:^(NVTreeDrawer*item, NVQuadCurve curve){
+            [path addLineToPoint:curve.start];
+            [path moveToPoint:curve.start];
+            [path addQuadCurveToPoint:curve.end controlPoint:curve.control];
+            [path moveToPoint:curve.end];
         }];
         
         [path addLineToPoint:VAdd(self.position, VMulN(VNegate(normDir), self.radius))];
