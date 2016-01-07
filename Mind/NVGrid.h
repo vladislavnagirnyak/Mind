@@ -17,6 +17,7 @@
 - (NVCoord)getCoord: (CGPoint)point;
 - (ObjectType)getObjectInPoint: (CGPoint)point;
 - (ObjectType)getObjectInCoord: (NVCoord)coord;
+- (NSArray<ObjectType>*)getObjectsInRangePoint: (CGPoint)start end:(CGPoint)end;
 - (NSArray<ObjectType>*)getObjectsInRangeCoord: (NVCoord)start end:(NVCoord)end;
 - (void)setObject: (ObjectType)object inPoint: (CGPoint)point;
 - (void)setObject: (ObjectType)object inCoord: (NVCoord)coord;

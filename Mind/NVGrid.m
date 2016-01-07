@@ -126,6 +126,10 @@
         [_items removeAllObjects];
 }
 
+- (NSArray*)getObjectsInRangePoint: (CGPoint)start end:(CGPoint)end {
+    return [self getObjectsInRangeCoord:[self getCoord:start] end:[self getCoord:end]];
+}
+
 - (NSArray*)getObjectsInRangeCoord: (NVCoord)start end:(NVCoord)end {
     NSMutableArray *result = [[NSMutableArray alloc] init];
     for (NVPair *pair in _items) {

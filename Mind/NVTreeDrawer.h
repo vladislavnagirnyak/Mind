@@ -7,7 +7,7 @@
 //
 
 #import <QuartzCore/QuartzCore.h>
-#import "NVTreeNode.h"
+#import "NVNode.h"
 #import "NVGrid.h"
 #import "NVStrategyDraw.h"
 
@@ -22,15 +22,13 @@ typedef NVGrid<NVTreeDrawer*> NVTreeGrid;
 
 @interface NVTreeDrawer : CALayer
 
-@property NSMutableArray *children;
-@property(weak) NVTreeDrawer *parent;
-@property NVTreeNode *node;
+@property NVNode<NVTreeDrawer*> *node;
 @property(readonly) CATextLayer *label;
 @property CGFloat radius;
 @property CGFloat padding;
 @property id<NVStrategyDraw> strategy;
 
-- (instancetype)initWithNode:(NVTreeNode*)node onLayer:(CALayer*)onLayer withGrid:(NVTreeGrid*)grid;
+- (instancetype)initWithNode:(NVNode*)node onLayer:(CALayer*)onLayer withGrid:(NVTreeGrid*)grid;
 - (void)setPosition:(CGPoint)location flags:(NSUInteger)flags;
 - (void)addChild;
 - (void)remove;

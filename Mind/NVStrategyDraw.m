@@ -30,7 +30,7 @@
 }
 
 -(void)addChild:(NVTreeDrawer *)child {
-    CGPoint newPoint = CGPointMake(child.parent.position.x, child.parent.position.y + child.radius * 2 + child.padding);
+    CGPoint newPoint = VAdd(child.node.parent.drawer.position, V(0, child.radius * 2 + child.padding));
     [child setPosition:newPoint flags:0];
 }
 
@@ -75,8 +75,8 @@
         [_levelMap addObject:@1];
     }
     
-    for (NVTreeDrawer *item in drawer.children) {
-        [self buildLevelMap:item withStart:startLevel];
+    for (NVNode *item in drawer.node.children) {
+        [self buildLevelMap:item.drawer withStart:startLevel];
     }
 }
 
@@ -92,10 +92,11 @@
     
     [offsets replaceObjectAtIndex:data.node.level withObject:[NSNumber numberWithInt:xOffsetNode + radius * 2 + padding]];
     
-    if (data.children.count > 0) {
+    if (data.node.children.count > 0) {
         CGFloat xOffset = ((NSNumber*)[offsets objectAtIndex:data.node.level + 1]).intValue;
 
-        for (NVTreeDrawer *subDrawer in data.children) {
+        for (NVNode *item in data.node.children) {
+            NVTreeDrawer *subDrawer = item.drawer;
             CGPoint newPoint = CGPointMake(inPoint.x, inPoint.y + radius * 2 + padding);
             [self drawTopToBottom:subDrawer inPoint:newPoint offsets:offsets];
             xOffset += radius * 2 + padding;

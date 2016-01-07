@@ -16,7 +16,7 @@
 		94468D7E1C2B3ABA0078A505 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 94468D7C1C2B3ABA0078A505 /* LaunchScreen.storyboard */; };
 		94468D891C2B3ABA0078A505 /* MindTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 94468D881C2B3ABA0078A505 /* MindTests.m */; };
 		94468D941C2B3ABA0078A505 /* MindUITests.m in Sources */ = {isa = PBXBuildFile; fileRef = 94468D931C2B3ABA0078A505 /* MindUITests.m */; };
-		94468DA31C2B46A70078A505 /* NVTreeNode.m in Sources */ = {isa = PBXBuildFile; fileRef = 94468DA21C2B46A70078A505 /* NVTreeNode.m */; };
+		94468DA31C2B46A70078A505 /* NVNode.m in Sources */ = {isa = PBXBuildFile; fileRef = 94468DA21C2B46A70078A505 /* NVNode.m */; };
 		94468DA61C2B4B0C0078A505 /* NVTreeDrawer.m in Sources */ = {isa = PBXBuildFile; fileRef = 94468DA51C2B4B0C0078A505 /* NVTreeDrawer.m */; };
 		94468DAB1C2CA7870078A505 /* Basic Tree.plist in Resources */ = {isa = PBXBuildFile; fileRef = 94468DAA1C2CA7870078A505 /* Basic Tree.plist */; };
 		947F587F1C33526C0005BC63 /* NVItemPropertyView.m in Sources */ = {isa = PBXBuildFile; fileRef = 947F587E1C33526C0005BC63 /* NVItemPropertyView.m */; };
@@ -24,6 +24,7 @@
 		94862A801C32E46F00CB625C /* NVGrid.m in Sources */ = {isa = PBXBuildFile; fileRef = 94862A7F1C32E46F00CB625C /* NVGrid.m */; };
 		94CB5DDA1C3721900019DB35 /* NVStrategyDraw.m in Sources */ = {isa = PBXBuildFile; fileRef = 94CB5DD91C3721900019DB35 /* NVStrategyDraw.m */; };
 		94CB5DDD1C3783CD0019DB35 /* NVMath.c in Sources */ = {isa = PBXBuildFile; fileRef = 94CB5DDB1C3783CD0019DB35 /* NVMath.c */; };
+		94F161641C3EF2F700CC6900 /* NSArray+Collision.m in Sources */ = {isa = PBXBuildFile; fileRef = 94F161631C3EF2F700CC6900 /* NSArray+Collision.m */; };
 		94F6505C1C2EC90700BCB74C /* CGAffineTransformHelper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 94F6505A1C2EC90700BCB74C /* CGAffineTransformHelper.cpp */; };
 /* End PBXBuildFile section */
 
@@ -62,8 +63,8 @@
 		94468D8F1C2B3ABA0078A505 /* MindUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MindUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		94468D931C2B3ABA0078A505 /* MindUITests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MindUITests.m; sourceTree = "<group>"; };
 		94468D951C2B3ABA0078A505 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		94468DA11C2B46A70078A505 /* NVTreeNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NVTreeNode.h; sourceTree = "<group>"; };
-		94468DA21C2B46A70078A505 /* NVTreeNode.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NVTreeNode.m; sourceTree = "<group>"; };
+		94468DA11C2B46A70078A505 /* NVNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NVNode.h; sourceTree = "<group>"; };
+		94468DA21C2B46A70078A505 /* NVNode.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NVNode.m; sourceTree = "<group>"; };
 		94468DA41C2B4B0C0078A505 /* NVTreeDrawer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NVTreeDrawer.h; sourceTree = "<group>"; };
 		94468DA51C2B4B0C0078A505 /* NVTreeDrawer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NVTreeDrawer.m; sourceTree = "<group>"; };
 		94468DAA1C2CA7870078A505 /* Basic Tree.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "Basic Tree.plist"; sourceTree = "<group>"; };
@@ -76,6 +77,8 @@
 		94CB5DD91C3721900019DB35 /* NVStrategyDraw.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NVStrategyDraw.m; sourceTree = "<group>"; };
 		94CB5DDB1C3783CD0019DB35 /* NVMath.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = NVMath.c; sourceTree = "<group>"; };
 		94CB5DDC1C3783CD0019DB35 /* NVMath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NVMath.h; sourceTree = "<group>"; };
+		94F161621C3EF2F700CC6900 /* NSArray+Collision.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSArray+Collision.h"; sourceTree = "<group>"; };
+		94F161631C3EF2F700CC6900 /* NSArray+Collision.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSArray+Collision.m"; sourceTree = "<group>"; };
 		94F6505A1C2EC90700BCB74C /* CGAffineTransformHelper.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CGAffineTransformHelper.cpp; sourceTree = "<group>"; };
 		94F6505B1C2EC90700BCB74C /* CGAffineTransformHelper.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = CGAffineTransformHelper.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -138,8 +141,8 @@
 				94468D7F1C2B3ABA0078A505 /* Info.plist */,
 				94468D771C2B3ABA0078A505 /* Mind.xcdatamodeld */,
 				94468D6B1C2B3ABA0078A505 /* Supporting Files */,
-				94468DA11C2B46A70078A505 /* NVTreeNode.h */,
-				94468DA21C2B46A70078A505 /* NVTreeNode.m */,
+				94468DA11C2B46A70078A505 /* NVNode.h */,
+				94468DA21C2B46A70078A505 /* NVNode.m */,
 				94468DA41C2B4B0C0078A505 /* NVTreeDrawer.h */,
 				94468DA51C2B4B0C0078A505 /* NVTreeDrawer.m */,
 				94F6505A1C2EC90700BCB74C /* CGAffineTransformHelper.cpp */,
@@ -153,6 +156,8 @@
 				94CB5DD91C3721900019DB35 /* NVStrategyDraw.m */,
 				94CB5DDB1C3783CD0019DB35 /* NVMath.c */,
 				94CB5DDC1C3783CD0019DB35 /* NVMath.h */,
+				94F161621C3EF2F700CC6900 /* NSArray+Collision.h */,
+				94F161631C3EF2F700CC6900 /* NSArray+Collision.m */,
 			);
 			path = Mind;
 			sourceTree = "<group>";
@@ -317,6 +322,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				94468DA61C2B4B0C0078A505 /* NVTreeDrawer.m in Sources */,
+				94F161641C3EF2F700CC6900 /* NSArray+Collision.m in Sources */,
 				94468D731C2B3ABA0078A505 /* ViewController.mm in Sources */,
 				94CB5DDD1C3783CD0019DB35 /* NVMath.c in Sources */,
 				94468D791C2B3ABA0078A505 /* Mind.xcdatamodeld in Sources */,
@@ -326,7 +332,7 @@
 				947F587F1C33526C0005BC63 /* NVItemPropertyView.m in Sources */,
 				94862A801C32E46F00CB625C /* NVGrid.m in Sources */,
 				94468D6D1C2B3ABA0078A505 /* main.m in Sources */,
-				94468DA31C2B46A70078A505 /* NVTreeNode.m in Sources */,
+				94468DA31C2B46A70078A505 /* NVNode.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

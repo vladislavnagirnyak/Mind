@@ -7,7 +7,7 @@
 //
 
 #import "ViewController.h"
-#import "NVTreeNode.h"
+#import "NVNode.h"
 #import "NVTreeDrawer.h"
 #import "CGAffineTransformHelper.hpp"
 #import "NVGrid.h"
@@ -25,7 +25,7 @@ typedef enum : NSUInteger {
 
 @interface ViewController () <UIGestureRecognizerDelegate> {
     UIScrollView *_rootView;
-    NVTreeNode *_root;
+    NVNode *_root;
     NVTreeDrawer *_rootDrawer;
     CGFloat _deltaScale;
     CGFloat _deltaRotate;
@@ -231,10 +231,11 @@ typedef enum : NSUInteger {
     [self.view addGestureRecognizer:rotation];
     
     NSDictionary *treeDic = [NSDictionary dictionaryWithContentsOfURL:[[NSBundle mainBundle] URLForResource:@"Basic Tree" withExtension:@"plist"]];
-    _root = [[NVTreeNode alloc] initWithDictionary:treeDic inRoot:nil];
-    
+
+    _root = [[NVNode alloc] initWithDictionary:treeDic withParent:nil];
+
     _grid = [[NVTreeGrid alloc] init];
-    CGFloat cellSize = M_SQRT2 * 100;
+    CGFloat cellSize = M_SQRT2 * 50;
     _grid.cellSize = CGSizeMake(cellSize, cellSize);
     
     _rootDrawer = [[NVTreeDrawer alloc] initWithNode:_root onLayer:self.view.layer withGrid:_grid];

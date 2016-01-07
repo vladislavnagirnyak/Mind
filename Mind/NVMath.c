@@ -104,8 +104,26 @@ int isEqual(NVCoord c1, NVCoord c2)
 
 int inRange(NVCoord coord, NVCoord start, NVCoord end)
 {
-    return coord.x > start.x && coord.x < end.x
-        && coord.y > start.y && coord.y < end.y;
+    NVCoord s = start, e = end;
+    
+    if (start.x < end.x) {
+        s.x = start.x;
+        e.x = end.x;
+    } else {
+        s.x = end.x;
+        e.x = start.x;
+    }
+    
+    if (start.y < end.y) {
+        s.y = start.y;
+        e.y = end.y;
+    } else {
+        s.y = end.y;
+        e.y = start.y;
+    }
+    
+    return coord.x >= s.x && coord.x <= e.x
+        && coord.y >= s.y && coord.y <= e.y;
 }
 
 int IntersectCircleRay(NVCircle c, NVRay r, NVQuadCurve *curve)
@@ -130,6 +148,7 @@ int IntersectCircleRay(NVCircle c, NVRay r, NVQuadCurve *curve)
             curve->end = VAdd(r.position, VMulN(normRayDir, lengthGamma + lengthPartGamma));
             curve->control = VAdd(c.center, VMulN(VNormalize(VSub(VAdd(r.position, VMulN(normRayDir, lengthGamma)), c.center)), c.radius * 2 - lengthAlpha));
         }
+        
         return 1;
     }
     
