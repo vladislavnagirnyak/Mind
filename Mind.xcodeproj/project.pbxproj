@@ -22,6 +22,7 @@
 		947F587F1C33526C0005BC63 /* NVItemPropertyView.m in Sources */ = {isa = PBXBuildFile; fileRef = 947F587E1C33526C0005BC63 /* NVItemPropertyView.m */; };
 		947F58811C3352940005BC63 /* NVItemPropertyView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 947F58801C3352940005BC63 /* NVItemPropertyView.xib */; };
 		94862A801C32E46F00CB625C /* NVGrid.m in Sources */ = {isa = PBXBuildFile; fileRef = 94862A7F1C32E46F00CB625C /* NVGrid.m */; };
+		94A2DD261C4052520039345D /* NVTree.m in Sources */ = {isa = PBXBuildFile; fileRef = 94A2DD251C4052520039345D /* NVTree.m */; };
 		94CB5DDA1C3721900019DB35 /* NVStrategyDraw.m in Sources */ = {isa = PBXBuildFile; fileRef = 94CB5DD91C3721900019DB35 /* NVStrategyDraw.m */; };
 		94CB5DDD1C3783CD0019DB35 /* NVMath.c in Sources */ = {isa = PBXBuildFile; fileRef = 94CB5DDB1C3783CD0019DB35 /* NVMath.c */; };
 		94F161641C3EF2F700CC6900 /* NSArray+Collision.m in Sources */ = {isa = PBXBuildFile; fileRef = 94F161631C3EF2F700CC6900 /* NSArray+Collision.m */; };
@@ -73,6 +74,8 @@
 		947F58801C3352940005BC63 /* NVItemPropertyView.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = NVItemPropertyView.xib; sourceTree = "<group>"; };
 		94862A7E1C32E46F00CB625C /* NVGrid.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NVGrid.h; sourceTree = "<group>"; };
 		94862A7F1C32E46F00CB625C /* NVGrid.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NVGrid.m; sourceTree = "<group>"; };
+		94A2DD241C4052520039345D /* NVTree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NVTree.h; sourceTree = "<group>"; };
+		94A2DD251C4052520039345D /* NVTree.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NVTree.m; sourceTree = "<group>"; };
 		94CB5DD81C3721900019DB35 /* NVStrategyDraw.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NVStrategyDraw.h; sourceTree = "<group>"; };
 		94CB5DD91C3721900019DB35 /* NVStrategyDraw.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NVStrategyDraw.m; sourceTree = "<group>"; };
 		94CB5DDB1C3783CD0019DB35 /* NVMath.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = NVMath.c; sourceTree = "<group>"; };
@@ -158,6 +161,8 @@
 				94CB5DDC1C3783CD0019DB35 /* NVMath.h */,
 				94F161621C3EF2F700CC6900 /* NSArray+Collision.h */,
 				94F161631C3EF2F700CC6900 /* NSArray+Collision.m */,
+				94A2DD241C4052520039345D /* NVTree.h */,
+				94A2DD251C4052520039345D /* NVTree.m */,
 			);
 			path = Mind;
 			sourceTree = "<group>";
@@ -323,6 +328,7 @@
 			files = (
 				94468DA61C2B4B0C0078A505 /* NVTreeDrawer.m in Sources */,
 				94F161641C3EF2F700CC6900 /* NSArray+Collision.m in Sources */,
+				94A2DD261C4052520039345D /* NVTree.m in Sources */,
 				94468D731C2B3ABA0078A505 /* ViewController.mm in Sources */,
 				94CB5DDD1C3783CD0019DB35 /* NVMath.c in Sources */,
 				94468D791C2B3ABA0078A505 /* Mind.xcdatamodeld in Sources */,

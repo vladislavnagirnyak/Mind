@@ -15,6 +15,7 @@
 #import <CoreGraphics/CoreGraphics.h>
 #import "NVStrategyDraw.h"
 #import "NVMath.c"
+#import "NVTree.h"
 
 typedef enum : NSUInteger {
     NVS_RENAME,
@@ -257,6 +258,21 @@ typedef enum : NSUInteger {
     [self.view addSubview:_textField];
     _textField.hidden = YES;
     
+    /*NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    
+    NVTree *tree;
+    NSData *mindMap = [defaults objectForKey:@"MindMapTree"];
+    if (!mindMap) {
+        tree = [[NVTree alloc] init];
+        tree.root = _root;
+        mindMap = [NSKeyedArchiver archivedDataWithRootObject:tree];
+        [defaults setObject:mindMap forKey:@"MindMapTree"];
+        [defaults synchronize];
+    } else {
+        tree = [NSKeyedUnarchiver unarchiveObjectWithData:mindMap];
+    }
+    
+    _root = tree.root;*/
     // Do any additional setup after loading the view, typically from a nib.
 }
 
