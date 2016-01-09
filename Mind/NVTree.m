@@ -10,6 +10,15 @@
 
 @implementation NVTree
 
+- (instancetype)initWithRoot:(NVNode *)root {
+    self = [super init];
+    if (self) {
+        _root = root;
+    }
+    
+    return self;
+}
+
 - (void)encodeWithCoder:(NSCoder *)aCoder {
     [self encodeWithCoder:aCoder withNode:_root ];
 }

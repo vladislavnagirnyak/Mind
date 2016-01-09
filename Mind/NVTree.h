@@ -13,4 +13,6 @@
 
 @property NVNode *root;
 
+- (instancetype)initWithRoot:(NVNode*)root;
+
 @end

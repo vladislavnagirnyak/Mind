@@ -41,6 +41,14 @@ typedef enum : NSUInteger {
 @end
 
 @implementation ViewController
+- (IBAction)onSave:(UIBarButtonItem *)sender {
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    
+    NVTree *tree = [[NVTree alloc] initWithRoot:_root];
+    NSData *mindMap = [NSKeyedArchiver archivedDataWithRootObject:tree];
+    [defaults setObject:mindMap forKey:@"MindMapTree"];
+    [defaults synchronize];
+}
 
 - (void)actionWith: (UIGestureRecognizer*)recognizer state:(NVStateControllerEnum)state isStart:(BOOL)start {
     CGPoint utsfLocation = [recognizer locationInView:_rootView];
@@ -231,9 +239,21 @@ typedef enum : NSUInteger {
     rotation.delegate = self;
     [self.view addGestureRecognizer:rotation];
     
-    NSDictionary *treeDic = [NSDictionary dictionaryWithContentsOfURL:[[NSBundle mainBundle] URLForResource:@"Basic Tree" withExtension:@"plist"]];
+    //NSDictionary *treeDic = [NSDictionary dictionaryWithContentsOfURL:[[NSBundle mainBundle] URLForResource:@"Basic Tree" withExtension:@"plist"]];
 
-    _root = [[NVNode alloc] initWithDictionary:treeDic withParent:nil];
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    
+    NVTree *tree;
+    NSData *mindMap = [defaults objectForKey:@"MindMapTree"];
+    if (!mindMap) {
+        tree = [[NVTree alloc] initWithRoot:[[NVNode alloc] init]];
+    } else {
+        tree = [NSKeyedUnarchiver unarchiveObjectWithData:mindMap];
+    }
+    
+    _root = tree.root;
+    
+    //_root = [[NVNode alloc] initWithDictionary:treeDic withParent:nil];
 
     _grid = [[NVTreeGrid alloc] init];
     CGFloat cellSize = M_SQRT2 * 50;
