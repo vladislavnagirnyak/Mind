@@ -28,20 +28,21 @@
 
 @interface NVNode<__covariant DrawerType:CALayer*> : NSObject
 
-typedef void(^NVNodeBlock)(NVNode<DrawerType> *first, NVNode<DrawerType> *second);
-
-@property(weak) NVNode<DrawerType>* parent;
-@property NSArray<NVNode<DrawerType>*> *children;
+@property(weak) NVNode* parent;
+@property NSArray<NVNode*> *children;
 @property size_t level;
 @property(weak) DrawerType drawer;
 
 @property NSString *value;
+@property CGPoint position;
 
-- (instancetype)initWithDictionary:(NSDictionary *)dictionary withParent:(NVNode<DrawerType>*)parent;
+- (instancetype)initWithParent:(NVNode*)parent;
+- (instancetype)initWithDictionary:(NSDictionary *)dictionary withParent:(NVNode*)parent;
 
-- (NVNode<DrawerType>*)findRoot;
-- (void)addChild: (NVNode<DrawerType>*)child;
-- (void)removeChild: (NVNode<DrawerType>*)child;
-- (void)collision: (NVNodeBlock)action;
+- (NVNode*)findRoot;
+- (void)addChild: (NVNode*)child;
+- (void)removeChild: (NVNode*)child;
+- (void)remove;
+- (void)foreach: (void(^)(NVNode *node))action;
 
 @end

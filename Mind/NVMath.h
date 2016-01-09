@@ -74,4 +74,7 @@ int IntersectCircleRay(NVCircle c, NVRay r, NVQuadCurve *curve);
 int IntersectCircleCircle(NVCircle c1, NVCircle c2);
 int IntersectCircleStraight(NVCircle c, NVStraight s, CGPoint *p);
 
+CGPoint NormalizedPos(CGPoint point, CGRect bounds);
+CGPoint UnnormalizedPos(CGPoint point, CGRect bounds);
+
 #endif /* NVMath_h */

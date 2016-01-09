@@ -26,16 +26,23 @@
     return self;
 }
 
-- (instancetype)initWithDictionary:(NSDictionary *)dictionary withParent:(NVNode*)parent {
+- (instancetype)initWithParent:(NVNode*)parent {
     self = [self init];
     if (self) {
-        _value = dictionary[@"body"];
-        NSArray *children = dictionary[@"children"];
-        
         if (parent) {
             self.level = parent.level + 1;
             self.parent = parent;
         }
+    }
+    
+    return self;
+}
+
+- (instancetype)initWithDictionary:(NSDictionary *)dictionary withParent:(NVNode*)parent {
+    self = [self initWithParent:parent];
+    if (self) {
+        _value = dictionary[@"body"];
+        NSArray *children = dictionary[@"children"];
         
         if (children) {
             if ([children isKindOfClass:[NSArray class]]) {
@@ -74,15 +81,31 @@
 }
 
 - (void)removeChild: (NVNode*)child {
-    for (NVNode *item in child.children) {
-        [child removeChild:item];
+    if ([_children containsObject:child]) {
+        /*for (NVNode *item in child.children) {
+            [child removeChild:item];
+        }*/
+        
+        [_children removeObject:child];
     }
-    
-    [_children removeObject:child];
 }
 
-- (void)collision:(NVNodeBlock)action {
+- (void)remove {
+    for (NVNode *child in _children) {
+        [child remove];
+    }
+    
+    if (_parent) {
+        [_parent removeChild:self];
+    }
+}
 
+- (void)foreach:(void (^)(NVNode *))action {
+    action(self);
+    
+    for (NVNode *child in self.children) {
+        [child foreach:action];
+    }
 }
 
 @end

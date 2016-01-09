@@ -3,6 +3,7 @@
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="9529"/>
+        <capability name="Navigation items with more than one left or right bar item" minToolsVersion="7.0"/>
     </dependencies>
     <scenes>
         <!--Navigation Controller-->
@@ -36,11 +37,18 @@
                     </scrollView>
                     <toolbarItems/>
                     <navigationItem key="navigationItem" id="Q6y-Tl-Lfx">
-                        <barButtonItem key="leftBarButtonItem" systemItem="save" id="M8l-0X-ows">
-                            <connections>
-                                <action selector="onSave:" destination="ROd-Zn-xog" id="fDX-cm-a7d"/>
-                            </connections>
-                        </barButtonItem>
+                        <leftBarButtonItems>
+                            <barButtonItem systemItem="save" id="M8l-0X-ows">
+                                <connections>
+                                    <action selector="onSave:" destination="ROd-Zn-xog" id="fDX-cm-a7d"/>
+                                </connections>
+                            </barButtonItem>
+                            <barButtonItem title="Load" id="61g-6z-m4D" userLabel="Load">
+                                <connections>
+                                    <action selector="onLoad:" destination="ROd-Zn-xog" id="84u-UO-R1j"/>
+                                </connections>
+                            </barButtonItem>
+                        </leftBarButtonItems>
                     </navigationItem>
                     <simulatedToolbarMetrics key="simulatedBottomBarMetrics"/>
                 </viewController>

@@ -26,28 +26,50 @@ typedef enum : NSUInteger {
 
 @interface ViewController () <UIGestureRecognizerDelegate> {
     UIScrollView *_rootView;
-    NVNode *_root;
-    NVTreeDrawer *_rootDrawer;
+    NVTree *_tree;
     CGFloat _deltaScale;
     CGFloat _deltaRotate;
     CGPoint _deltaMove;
     NVTreeDrawer *_selected;
-    NVTreeGrid *_grid;
+    NVGrid *_grid;
     NVItemPropertyView *_itemProp;
     UITextField *_textField;
     NVStateControllerEnum _state;
+    id<NVStrategyDraw> _strategy;
 }
 
 @end
 
 @implementation ViewController
+
 - (IBAction)onSave:(UIBarButtonItem *)sender {
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     
-    NVTree *tree = [[NVTree alloc] initWithRoot:_root];
-    NSData *mindMap = [NSKeyedArchiver archivedDataWithRootObject:tree];
+    NSData *mindMap = [NSKeyedArchiver archivedDataWithRootObject:_tree];
     [defaults setObject:mindMap forKey:@"MindMapTree"];
     [defaults synchronize];
+}
+
+- (IBAction)onLoad:(UIBarButtonItem *)sender {
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    
+    NSData *mindMap = [defaults objectForKey:@"MindMapTree"];
+    if (!mindMap) {
+        _tree = [[NVTree alloc] initWithRoot:[[NVNode alloc] init]];
+    } else {
+        [_tree.root.drawer removeFromSuperlayer];
+        [_grid clear];
+        
+        _tree = [NSKeyedUnarchiver unarchiveObjectWithData:mindMap];
+    }
+    
+    NVTreeDrawer *drawer = [[NVTreeDrawer alloc] initWithNode:_tree.root onLayer:_rootView.layer withGrid:_grid];
+    
+    drawer.strategy = _strategy;
+    
+    if (!mindMap) {
+        [_strategy draw:drawer];
+    }
 }
 
 - (void)actionWith: (UIGestureRecognizer*)recognizer state:(NVStateControllerEnum)state isStart:(BOOL)start {
@@ -116,7 +138,9 @@ typedef enum : NSUInteger {
                 };
                 
                 _itemProp.onRemoveTap = ^{
-                    [target remove];
+                    //[target.node remove];
+                    [target removeFromSuperlayer];
+                    
                     wProp.hidden = YES;
                 };
             }
@@ -135,8 +159,9 @@ typedef enum : NSUInteger {
 }
 
 - (NVTreeDrawer*)getTargetByPos: (CGPoint)position {
+    position = VSub(position, _rootView.layer.bounds.origin);
     CALayer *target = [_rootView.layer hitTest:position];
-    
+
     if ([target isKindOfClass:[NVTreeDrawer class]])
         return (NVTreeDrawer*)target;
     else if ([target isKindOfClass:[CATextLayer class]])
@@ -206,6 +231,7 @@ typedef enum : NSUInteger {
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    
     _rootView = (UIScrollView*)self.view;
     _rootView.contentSize = CGSizeMake(1000, 1000);
     _rootView.scrollEnabled = YES;
@@ -240,64 +266,35 @@ typedef enum : NSUInteger {
     [self.view addGestureRecognizer:rotation];
     
     //NSDictionary *treeDic = [NSDictionary dictionaryWithContentsOfURL:[[NSBundle mainBundle] URLForResource:@"Basic Tree" withExtension:@"plist"]];
-
-    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-    
-    NVTree *tree;
-    NSData *mindMap = [defaults objectForKey:@"MindMapTree"];
-    if (!mindMap) {
-        tree = [[NVTree alloc] initWithRoot:[[NVNode alloc] init]];
-    } else {
-        tree = [NSKeyedUnarchiver unarchiveObjectWithData:mindMap];
-    }
-    
-    _root = tree.root;
     
     //_root = [[NVNode alloc] initWithDictionary:treeDic withParent:nil];
 
-    _grid = [[NVTreeGrid alloc] init];
+    _grid = [[NVGrid alloc] init];
     CGFloat cellSize = M_SQRT2 * 50;
     _grid.cellSize = CGSizeMake(cellSize, cellSize);
     
-    _rootDrawer = [[NVTreeDrawer alloc] initWithNode:_root onLayer:self.view.layer withGrid:_grid];
+    _strategy = [[NVStrategyDraw alloc] initWithStart:V(CGRectGetWidth(_rootView.frame) / 2.0, 50.0) withGrid:_grid];
     
-    NVStrategyDraw *strategy = [[NVStrategyDraw alloc] initWithStart:V(CGRectGetWidth(self.view.frame) / 2.0, 50.0) withGrid:_grid];
+    [self onLoad:nil];
     
-    _rootDrawer.strategy = strategy;
-    [_rootDrawer draw];
-    
-    _itemProp = [[NVItemPropertyView alloc] initWithFrame:_rootDrawer.frame];
+    _itemProp = [[NVItemPropertyView alloc] initWithFrame:_tree.root.drawer.frame];
     _itemProp.hidden = YES;
     [self.view addSubview:_itemProp];
+    
+    NVTreeDrawer *rootDrawer = _tree.root.drawer;
     
     _textField = [[UITextField alloc] initWithFrame:CGRectMake(0, 0, 100, 50)];
     _textField.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
     _textField.textAlignment = NSTextAlignmentCenter;
-    NSString *fontName = (__bridge NSString *)_rootDrawer.label.font;
-    _textField.font = [UIFont fontWithName:fontName size:_rootDrawer.label.fontSize];
+    NSString *fontName = (__bridge NSString *)rootDrawer.label.font;
+    _textField.font = [UIFont fontWithName:fontName size:rootDrawer.label.fontSize];
     [self.view addSubview:_textField];
     _textField.hidden = YES;
-    
-    /*NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-    
-    NVTree *tree;
-    NSData *mindMap = [defaults objectForKey:@"MindMapTree"];
-    if (!mindMap) {
-        tree = [[NVTree alloc] init];
-        tree.root = _root;
-        mindMap = [NSKeyedArchiver archivedDataWithRootObject:tree];
-        [defaults setObject:mindMap forKey:@"MindMapTree"];
-        [defaults synchronize];
-    } else {
-        tree = [NSKeyedUnarchiver unarchiveObjectWithData:mindMap];
-    }
-    
-    _root = tree.root;*/
-    // Do any additional setup after loading the view, typically from a nib.
 }
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
+    [self onSave:nil];
     // Dispose of any resources that can be recreated.
 }
 

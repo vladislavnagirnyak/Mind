@@ -188,3 +188,17 @@ int IntersectCircleStraight(NVCircle cir, NVStraight s, CGPoint *p)
         return 1;
     }
 }
+
+CGPoint NormalizedPos(CGPoint point, CGRect bounds)
+{
+    point = VSub(point, bounds.origin);
+    point = VDiv(point, V(bounds.size.width, bounds.size.height));
+    return point;
+}
+
+CGPoint UnnormalizedPos(CGPoint point, CGRect bounds)
+{
+    point = VMul(point, V(bounds.size.width, bounds.size.height));
+    point = VAdd(point, bounds.origin);
+    return point;
+}

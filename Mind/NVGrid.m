@@ -8,10 +8,10 @@
 
 #import "NVGrid.h"
 
-@interface NVPair<ObjectType> : NSObject
+@interface NVPair : NSObject
 
 @property NVCoord key;
-@property(weak) ObjectType value;
+@property(weak) id value;
 
 @end
 
@@ -19,8 +19,8 @@
 
 @end
 
-@interface NVGrid<ObjectType>() {
-    NSMutableArray<NVPair<ObjectType>*> *_items;
+@interface NVGrid() {
+    NSMutableArray<NVPair*> *_items;
 }
 @end
 
@@ -119,6 +119,14 @@
     
     if (pair)
         [_items removeObject:pair];
+}
+
+- (void)removeObject: (id)object {
+    for (NVPair *item in _items) {
+        if (item.value == object) {
+            [_items removeObject:item];
+        }
+    }
 }
 
 - (void)clear {

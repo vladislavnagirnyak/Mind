@@ -11,7 +11,7 @@
 
 @interface NVTree : NSObject<NSCoding>
 
-@property NVNode *root;
+@property(readonly) NVNode *root;
 
 - (instancetype)initWithRoot:(NVNode*)root;
 

@@ -24,23 +24,17 @@
 }
 
 - (void)encodeWithCoder:(NSCoder*)aCoder withNode:(NVNode*)node {
-    size_t x = 0;
-    //size_t parentX = 0;
+    /*size_t offset = node.parent ? [node.parent.children indexOfObject:node] : 0;
     
-    NVNode *parent = node.parent;
+    NSString *key = [NSString stringWithFormat:@"%zu-%zu", offset, node.level];
     
-    if (parent) {
-        x = [parent.children indexOfObject:node];
-        
-        //if (parent.parent)
-          //  parentX = [parent.parent.children indexOfObject:parent];
-    }
-    
-    NSString *key = [NSString stringWithFormat:@"%zu-%zu", x, node.level];
-    
-    //[aCoder encodeObject:@{@"x" : @(parentX), @"y" : @(node.level - 1)} forKey:[key stringByAppendingString:@"-parent"]];
     [aCoder encodeObject:node.value forKey:[key stringByAppendingString:@"-value"]];
-    [aCoder encodeObject:@(node.children.count) forKey:[key stringByAppendingString:@"-count"]];
+    [aCoder encodeCGPoint:node.position forKey:[key stringByAppendingString:@"-position"]];
+    [aCoder encodeObject:@(node.children.count) forKey:[key stringByAppendingString:@"-count"]];*/
+    
+    [aCoder encodeObject:node.value];
+    [aCoder encodeObject:[NSValue valueWithCGPoint:node.position]];
+    [aCoder encodeObject:@(node.children.count)];
     
     for (NVNode *item in node.children) {
         [self encodeWithCoder:aCoder withNode:item];
@@ -48,15 +42,17 @@
 }
 
 - (NVNode*)createWithCoder:(NSCoder *)aDecoder withParent:(NVNode*)parent offset:(size_t)offset{
-    NVNode *node = [[NVNode alloc] init];
+    NVNode *node = [[NVNode alloc] initWithParent:parent];
     
-    node.level = parent ? parent.level + 1 : 0;
-    node.parent = parent;
-    
-    NSString *key = [NSString stringWithFormat:@"%zu-%zu", offset, node.level];
+    /*NSString *key = [NSString stringWithFormat:@"%zu-%zu", offset, node.level];
 
     node.value = [aDecoder decodeObjectForKey:[key stringByAppendingString: @"-value"]];
-    size_t childrenCount = [[aDecoder decodeObjectForKey:[key stringByAppendingString: @"-count"]] unsignedLongLongValue];
+    node.position = [[aDecoder decodeObjectForKey:[key stringByAppendingString: @"-position"]]CGPointValue];
+    size_t childrenCount = [[aDecoder decodeObjectForKey:[key stringByAppendingString: @"-count"]] unsignedLongLongValue];*/
+    
+    node.value = [aDecoder decodeObject];
+    node.position = [[aDecoder decodeObject] CGPointValue];
+    size_t childrenCount = [[aDecoder decodeObject] unsignedLongLongValue];
     
     for (size_t i = 0; i < childrenCount; i++) {
         [node addChild:[self createWithCoder:aDecoder withParent:node offset:i]];
@@ -71,6 +67,12 @@
         _root = [self createWithCoder:aDecoder withParent:nil offset:0];
     }
     return self;
+}
+
+- (void)dealloc {
+    for (NVNode *child in _root.children) {
+        [_root removeChild:child];
+    }
 }
 
 @end
