@@ -27,13 +27,21 @@
             <objects>
                 <viewController id="ROd-Zn-xog" customClass="ViewController" sceneMemberID="viewController">
                     <layoutGuides>
-                        <viewControllerLayoutGuide type="top" id="tyh-G8-sNu"/>
-                        <viewControllerLayoutGuide type="bottom" id="GNq-ZU-doL"/>
+                        <viewControllerLayoutGuide type="top" id="MyK-Uo-prN"/>
+                        <viewControllerLayoutGuide type="bottom" id="C0G-BJ-cpc"/>
                     </layoutGuides>
-                    <scrollView key="view" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" id="Okb-gp-LJi">
+                    <scrollView key="view" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" id="9Ht-8G-H7X">
                         <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <gestureRecognizers/>
+                        <connections>
+                            <outlet property="delegate" destination="ROd-Zn-xog" id="CMR-xT-jWr"/>
+                            <outletCollection property="gestureRecognizers" destination="j1a-yQ-Yyq" appends="YES" id="l0c-x6-kvp"/>
+                            <outletCollection property="gestureRecognizers" destination="6pu-Q2-xlq" appends="YES" id="3ri-Qe-dzU"/>
+                            <outletCollection property="gestureRecognizers" destination="Q6e-cr-6p3" appends="YES" id="lPY-f2-S97"/>
+                            <outletCollection property="gestureRecognizers" destination="m58-Sd-ccS" appends="YES" id="T47-Xh-rFr"/>
+                        </connections>
                     </scrollView>
                     <toolbarItems/>
                     <navigationItem key="navigationItem" id="Q6y-Tl-Lfx">
@@ -51,8 +59,43 @@
                         </leftBarButtonItems>
                     </navigationItem>
                     <simulatedToolbarMetrics key="simulatedBottomBarMetrics"/>
+                    <connections>
+                        <outlet property="_doubleTapRecognizer" destination="m58-Sd-ccS" id="OJs-3x-U4j"/>
+                        <outlet property="_panRecognizer" destination="lws-Jv-VAF" id="9z2-Ls-NvY"/>
+                        <outlet property="_tapRecognizer" destination="Q6e-cr-6p3" id="3MM-5h-0Ws"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="d8O-ss-BwD" userLabel="First Responder" sceneMemberID="firstResponder"/>
+                <pinchGestureRecognizer id="j1a-yQ-Yyq">
+                    <connections>
+                        <action selector="pinched:" destination="ROd-Zn-xog" id="vFF-kP-f5H"/>
+                        <outlet property="delegate" destination="ROd-Zn-xog" id="sPf-hl-Cpo"/>
+                    </connections>
+                </pinchGestureRecognizer>
+                <panGestureRecognizer minimumNumberOfTouches="1" id="lws-Jv-VAF">
+                    <connections>
+                        <action selector="panned:" destination="ROd-Zn-xog" id="OQI-wL-qvr"/>
+                        <outlet property="delegate" destination="ROd-Zn-xog" id="mbj-fO-pf9"/>
+                    </connections>
+                </panGestureRecognizer>
+                <pongPressGestureRecognizer allowableMovement="10" minimumPressDuration="0.5" id="6pu-Q2-xlq">
+                    <connections>
+                        <action selector="longPressed:" destination="ROd-Zn-xog" id="3QO-mn-UNm"/>
+                        <outlet property="delegate" destination="ROd-Zn-xog" id="dsJ-ev-iQM"/>
+                    </connections>
+                </pongPressGestureRecognizer>
+                <tapGestureRecognizer id="Q6e-cr-6p3">
+                    <connections>
+                        <action selector="tapped:" destination="ROd-Zn-xog" id="ZIy-bp-j5z"/>
+                        <outlet property="delegate" destination="ROd-Zn-xog" id="eBi-AG-Y3O"/>
+                    </connections>
+                </tapGestureRecognizer>
+                <tapGestureRecognizer numberOfTapsRequired="2" id="m58-Sd-ccS" userLabel="DoubleTap Gesture Recognizer">
+                    <connections>
+                        <action selector="doubleTapped:" destination="ROd-Zn-xog" id="7wd-E6-ORh"/>
+                        <outlet property="delegate" destination="ROd-Zn-xog" id="5Wb-Dq-1T6"/>
+                    </connections>
+                </tapGestureRecognizer>
             </objects>
             <point key="canvasLocation" x="-491" y="-95"/>
         </scene>

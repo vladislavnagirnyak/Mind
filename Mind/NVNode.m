@@ -88,9 +88,7 @@
 }
 
 - (void)removeChild: (NVNode*)child {
-    if ([_children containsObject:child]) {
-        [_children removeObject:child];
-    }
+    [_children removeObject:child];
 }
 
 - (void)remove {    
@@ -117,16 +115,26 @@
     NSMutableArray *queue = [[NSMutableArray alloc] init];
     [queue addObject:self];
     size_t currentLevel = self.level;
-    while (!queue.count) {
-        NVNode *node = queue.lastObject;
+    size_t currentIndex = 0;
+    while (queue.count) {
+        NVNode *node = queue[currentIndex];
         
-        if (node.level != currentLevel) {
-            NSRange range = NSMakeRange(0, [queue indexOfObject:node]);
-            action([queue subarrayWithRange:range]);
-            [queue removeObjectsInRange: range];
-            currentLevel = node.level;
+        if (queue.count - currentIndex == 1 &&
+            node.children.count == 0) {
+            currentIndex++;
+            currentLevel++;
         }
         
+        if (node.level != currentLevel) {
+            NSRange range = NSMakeRange(0, currentIndex);
+            action([queue subarrayWithRange:range]);
+            [queue removeObjectsInRange: range];
+            currentLevel++;
+            currentIndex = 0;
+            continue;
+        }
+        
+        currentIndex++;
         [queue addObjectsFromArray:node.children];
     }
 }

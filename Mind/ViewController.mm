@@ -24,8 +24,8 @@ typedef enum : NSUInteger {
     NVS_PROPERTY,
 } NVStateControllerEnum;
 
-@interface ViewController () <UIGestureRecognizerDelegate> {
-    UIScrollView *_rootView;
+@interface ViewController () <UIGestureRecognizerDelegate, UIScrollViewDelegate> {
+    UIView *_rootView;
     NVTree *_tree;
     CGFloat _deltaScale;
     CGFloat _deltaRotate;
@@ -36,6 +36,12 @@ typedef enum : NSUInteger {
     UITextField *_textField;
     NVStateControllerEnum _state;
     id<NVStrategyDraw> _strategy;
+    
+    IBOutlet UITapGestureRecognizer *_tapRecognizer;
+    IBOutlet UITapGestureRecognizer *_doubleTapRecognizer;
+    IBOutlet UIPanGestureRecognizer *_panRecognizer;
+    
+    UIPanGestureRecognizer *_scrollViewPanRecognizer;
 }
 
 @end
@@ -70,6 +76,65 @@ typedef enum : NSUInteger {
     if (!mindMap) {
         [_strategy draw:drawer];
     }
+}
+
+- (IBAction)pinched:(UIPinchGestureRecognizer *)sender {
+    CGAffineTransformHelper p = CGAffineTransformHelper(_rootView.layer.affineTransform); //previus transformation
+    if (sender.state == UIGestureRecognizerStateBegan) {
+        _deltaScale = p.getScale().x;
+    }
+    
+    CGFloat scale = sender.scale * _deltaScale;
+    if (scale < 1.0)
+        scale = 1.0;
+    
+    p.setScale(V(scale, scale));
+    _rootView.layer.affineTransform = p;
+}
+
+- (IBAction)panned:(UIPanGestureRecognizer *)sender {
+    CGPoint utsfLocation = [sender locationInView:self.view];
+    
+    if (sender.state == UIGestureRecognizerStateBegan) {
+        [self actionWith:sender state:NVS_MOVE_NODE isStart:YES];
+    }
+    else if (sender.state == UIGestureRecognizerStateEnded ||
+             sender.state == UIGestureRecognizerStateCancelled) {
+        [self actionWith:sender state:NVS_MOVE_NODE isStart:NO];
+    }
+    else {
+        if (_selected) {
+            CGPoint location = CGPointApplyAffineTransform(utsfLocation, self.view.transform);
+            [_selected setPosition:VAdd(location, _deltaMove) flags:0];
+        }
+        else {
+            //if (CGRectContainsRect(_rootView.frame, _rootView.bounds)) {
+            //CGSize s = _rootView.frame.size;
+            //CGPoint point = VAdd(utsfLocation, _deltaMove);
+            
+            //((UIScrollView*)_rootView).scrollEnabled = YES;
+            
+            
+            //[_rootView addGestureRecognizer:_scrollViewPanRecognizer];
+            //_rootView.contentOffset = point;
+            
+            //_rootView.transform = CGAffineTransformTranslate(_rootView.transform, point.x, point.y);
+            //} else {
+            //self.view.frame = self.view.bounds;
+            //}
+        }
+    }
+}
+
+- (IBAction)longPressed:(UILongPressGestureRecognizer *)sender {
+}
+
+- (IBAction)tapped:(UITapGestureRecognizer *)sender {
+    [self actionWith:sender state:NVS_PROPERTY isStart:YES];
+}
+
+- (IBAction)doubleTapped:(UITapGestureRecognizer *)sender {
+    [self actionWith:sender state:NVS_RENAME isStart:YES];
 }
 
 - (void)actionWith: (UIGestureRecognizer*)recognizer state:(NVStateControllerEnum)state isStart:(BOOL)start {
@@ -114,8 +179,10 @@ typedef enum : NSUInteger {
                 if ((_selected = target)) {
                     _deltaMove = VSub(_selected.position, location);
                 } else {
+                    //[_rootView removeGestureRecognizer:_panRecognizer];
                     CGSize s = _rootView.frame.size;
-                    //_deltaMove = CGPointMake(_rootView.contentOffset.x - utsfLocation.x, _rootView.contentOffset.y - utsfLocation.y);
+                    //_deltaMove = VSub(_rootView.contentOffset, utsfLocation);
+                    //NSLog(@"log");
                 }
             }
             else _selected = nil;
@@ -150,14 +217,6 @@ typedef enum : NSUInteger {
     }
 }
 
-- (void)longPressed:(UILongPressGestureRecognizer*)recognizer {
-    //[self actionWith:recognizer state:NVS_RENAME isStart:YES];
-}
-
-- (void)tapped:(UITapGestureRecognizer*)recognizer {
-    [self actionWith:recognizer state:NVS_PROPERTY isStart:YES];
-}
-
 - (NVTreeDrawer*)getTargetByPos: (CGPoint)position {
     position = VSub(position, _rootView.layer.bounds.origin);
     CALayer *target = [_rootView.layer hitTest:position];
@@ -170,105 +229,59 @@ typedef enum : NSUInteger {
     return nil;
 }
 
-- (void)doubleTapped:(UITapGestureRecognizer*)recognizer {
-    [self actionWith:recognizer state:NVS_RENAME isStart:YES];
+- (void)scrollViewDidEndScrollingAnimation:(UIScrollView *)scrollView {
+    
 }
 
-- (void)panned:(UIPanGestureRecognizer*)recognizer {
-    CGPoint utsfLocation = [recognizer locationInView:self.view];
-    
-    if (recognizer.state == UIGestureRecognizerStateBegan) {
-        [self actionWith:recognizer state:NVS_MOVE_NODE isStart:YES];
-    }
-    else if (recognizer.state == UIGestureRecognizerStateEnded ||
-             recognizer.state == UIGestureRecognizerStateCancelled) {
-        [self actionWith:recognizer state:NVS_MOVE_NODE isStart:NO];
-    }
-    else {
-        if (_selected) {
-            CGPoint location = CGPointApplyAffineTransform(utsfLocation, self.view.transform);
-            [_selected setPosition:VAdd(location, _deltaMove) flags:0];
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+    //NSLog(@"1");
+    /*if (!_selected) {
+        CGSize boundsSize = _rootView.bounds.size;
+        CGRect contentsFrame = _rootView.frame;
+        
+        if (contentsFrame.size.width < boundsSize.width) {
+            contentsFrame.origin.x = (boundsSize.width - contentsFrame.size.width) / 2.0;
+        } else {
+            contentsFrame.origin.x = 0.0;
         }
-        else {
-            //if (CGRectContainsRect(_rootView.frame, _rootView.bounds)) {
-            CGSize s = _rootView.frame.size;
-            CGPoint point = CGPointMake(utsfLocation.x - s.width/2 + _deltaMove.x, utsfLocation.y - s.height/2 + _deltaMove.y);
-            
-            //_rootView.contentOffset = point;
-            
-            //_rootView.transform = CGAffineTransformTranslate(_rootView.transform, point.x, point.y);
-            //} else {
-                //self.view.frame = self.view.bounds;
-            //}
+        
+        if (contentsFrame.size.height < boundsSize.height) {
+            contentsFrame.origin.y = (boundsSize.height - contentsFrame.size.height) / 2.0;
+        } else {
+            contentsFrame.origin.y = 0.0;
         }
-    }
-}
-
-- (void)pinched:(UIPinchGestureRecognizer*)recognizer {
-    CGAffineTransformHelper p = CGAffineTransformHelper(_rootView.layer.affineTransform); //previus transformation
-    if (recognizer.state == UIGestureRecognizerStateBegan) {
-        _deltaScale = p.getScale().x;
-    }
-    
-    CGFloat scale = recognizer.scale * _deltaScale;
-    if (scale < 1.0)
-        scale = 1.0;
-    
-    p.setScale(V(scale, scale));
-    _rootView.layer.affineTransform = p;
-}
-
-- (void)rotated:(UIRotationGestureRecognizer*)recognizer {
-    CGAffineTransformHelper p = CGAffineTransformHelper(_rootView.layer.affineTransform);
-    
-    if (recognizer.state == UIGestureRecognizerStateBegan) {
-        _deltaRotate = p.getRotation();
-    }
-    
-    p.setRotation(recognizer.rotation + _deltaRotate);
-    //_rootView.layer.affineTransform = p;
+        _rootView.frame = contentsFrame;
+    }*/
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    _rootView = (UIScrollView*)self.view;
-    _rootView.contentSize = CGSizeMake(1000, 1000);
-    _rootView.scrollEnabled = YES;
+    [_tapRecognizer requireGestureRecognizerToFail:_doubleTapRecognizer];
     
-    UIPanGestureRecognizer *pan = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(panned:)];
-    pan.delegate = self;
-    [self.view addGestureRecognizer:pan];
     
-    UIPinchGestureRecognizer *pinch = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(pinched:)];
-    pinch.delegate = self;
-    [self.view addGestureRecognizer:pinch];
+    UIScrollView *scrollView = (UIScrollView*)self.view;
+    scrollView.contentSize = CGSizeMake(1000, 1000);
+    _scrollViewPanRecognizer = scrollView.panGestureRecognizer;
+    [scrollView addGestureRecognizer:_panRecognizer];
+    //scrollView.scrollEnabled = YES;
     
-    UILongPressGestureRecognizer *longPress = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(longPressed:)];
-    longPress.delegate = self;
-    longPress.minimumPressDuration = 1.0;
-    [self.view addGestureRecognizer:longPress];
+    //scrollView.contentOffset = CGPointMake(200, 50);
+    _rootView = scrollView;
     
-    UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapped:)];
-    tap.delegate = self;
-    tap.numberOfTapsRequired = 1;
-    [self.view addGestureRecognizer:tap];
     
-    UITapGestureRecognizer *doubleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(doubleTapped:)];
-    doubleTap.delegate = self;
-    doubleTap.numberOfTapsRequired = 2;
-    [self.view addGestureRecognizer:doubleTap];
+    /*
+    CAScrollLayer *scrollLayer = [CAScrollLayer layer];
     
-    [tap requireGestureRecognizerToFail:doubleTap];
+    scrollLayer.bounds = CGRectMake(0.0, 0.0, 300.0, 600.0); // 9
+    scrollLayer.position = CGPointMake(self.view.bounds.size.width/2, self.view.bounds.size.height/2); // 10
+    scrollLayer.borderColor = [UIColor blackColor].CGColor; // 11
+    scrollLayer.borderWidth = 5.0; // 12
+    scrollLayer.scrollMode = kCAScrollHorizontally; // 13
     
-    UIRotationGestureRecognizer *rotation = [[UIRotationGestureRecognizer alloc] initWithTarget:self action:@selector(rotated:)];
-    rotation.delegate = self;
-    [self.view addGestureRecognizer:rotation];
+    [scrollView.layer addSublayer:scrollLayer];
+    */
     
-    //NSDictionary *treeDic = [NSDictionary dictionaryWithContentsOfURL:[[NSBundle mainBundle] URLForResource:@"Basic Tree" withExtension:@"plist"]];
-    
-    //_root = [[NVNode alloc] initWithDictionary:treeDic withParent:nil];
-
     _grid = [[NVGrid alloc] init];
     CGFloat cellSize = M_SQRT2 * 50;
     _grid.cellSize = CGSizeMake(cellSize, cellSize);
@@ -277,11 +290,11 @@ typedef enum : NSUInteger {
     
     [self onLoad:nil];
     
-    _itemProp = [[NVItemPropertyView alloc] initWithFrame:_tree.root.drawer.frame];
+    NVTreeDrawer *rootDrawer = _tree.root.drawer;
+    
+    _itemProp = [[NVItemPropertyView alloc] initWithFrame:rootDrawer.frame];
     _itemProp.hidden = YES;
     [self.view addSubview:_itemProp];
-    
-    NVTreeDrawer *rootDrawer = _tree.root.drawer;
     
     _textField = [[UITextField alloc] initWithFrame:CGRectMake(0, 0, 100, 50)];
     _textField.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;

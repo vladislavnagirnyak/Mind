@@ -41,7 +41,6 @@
 
 - (NVNode*)findRoot;
 - (void)addChild: (NVNode*)child;
-- (void)removeChild: (NVNode*)child;
 - (void)remove;
 - (void)foreach: (void(^)(NVNode *node))action;
 - (void)foreachLevel: (void(^)(NSArray<NVNode*> *items))action;
