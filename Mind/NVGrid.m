@@ -122,9 +122,10 @@
 }
 
 - (void)removeObject: (id)object {
-    for (NVPair *item in _items) {
-        if (item.value == object) {
-            [_items removeObject:item];
+    for (size_t i = 0; i < _items.count; i++) {
+        if (_items[i].value == object) {
+            [_items removeObjectAtIndex:i];
+            i--;
         }
     }
 }

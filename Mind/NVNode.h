@@ -30,7 +30,7 @@
 
 @property(weak) NVNode* parent;
 @property NSArray<NVNode*> *children;
-@property size_t level;
+@property(nonatomic) size_t level;
 @property(weak) DrawerType drawer;
 
 @property NSString *value;
@@ -44,5 +44,6 @@
 - (void)removeChild: (NVNode*)child;
 - (void)remove;
 - (void)foreach: (void(^)(NVNode *node))action;
+- (void)foreachLevel: (void(^)(NSArray<NVNode*> *items))action;
 
 @end

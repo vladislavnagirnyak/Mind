@@ -261,13 +261,6 @@ static double sNVTreeNodeRadius = 50;
             [item.drawer removeFromSuperlayer];
         }
     }
-    
-    if (_node) {
-        [_node.parent removeChild:_node];
-    }
-}
-
-- (void) dealloc {
 }
 
 @end

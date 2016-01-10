@@ -30,12 +30,19 @@
     self = [self init];
     if (self) {
         if (parent) {
-            self.level = parent.level + 1;
-            self.parent = parent;
+            [parent addChild:self];
         }
     }
     
     return self;
+}
+
+- (void)setLevel:(size_t)level {
+    _level = level;
+    
+    for (NVNode *child in self.children) {
+        child.level = level + 1;
+    }
 }
 
 - (instancetype)initWithDictionary:(NSDictionary *)dictionary withParent:(NVNode*)parent {
@@ -82,22 +89,20 @@
 
 - (void)removeChild: (NVNode*)child {
     if ([_children containsObject:child]) {
-        /*for (NVNode *item in child.children) {
-            [child removeChild:item];
-        }*/
-        
         [_children removeObject:child];
     }
 }
 
-- (void)remove {
-    for (NVNode *child in _children) {
-        [child remove];
+- (void)remove {    
+    while (_children.count != 0) {
+        [_children.lastObject remove];
     }
     
     if (_parent) {
         [_parent removeChild:self];
     }
+    
+    _value = nil;
 }
 
 - (void)foreach:(void (^)(NVNode *))action {
@@ -105,6 +110,24 @@
     
     for (NVNode *child in self.children) {
         [child foreach:action];
+    }
+}
+
+- (void)foreachLevel: (void(^)(NSArray<NVNode*> *items))action {
+    NSMutableArray *queue = [[NSMutableArray alloc] init];
+    [queue addObject:self];
+    size_t currentLevel = self.level;
+    while (!queue.count) {
+        NVNode *node = queue.lastObject;
+        
+        if (node.level != currentLevel) {
+            NSRange range = NSMakeRange(0, [queue indexOfObject:node]);
+            action([queue subarrayWithRange:range]);
+            [queue removeObjectsInRange: range];
+            currentLevel = node.level;
+        }
+        
+        [queue addObjectsFromArray:node.children];
     }
 }
 

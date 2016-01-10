@@ -55,7 +55,7 @@
     size_t childrenCount = [[aDecoder decodeObject] unsignedLongLongValue];
     
     for (size_t i = 0; i < childrenCount; i++) {
-        [node addChild:[self createWithCoder:aDecoder withParent:node offset:i]];
+        [self createWithCoder:aDecoder withParent:node offset:i];
     }
     
     return node;
@@ -70,9 +70,7 @@
 }
 
 - (void)dealloc {
-    for (NVNode *child in _root.children) {
-        [_root removeChild:child];
-    }
+    [_root remove];
 }
 
 @end

@@ -138,8 +138,8 @@ typedef enum : NSUInteger {
                 };
                 
                 _itemProp.onRemoveTap = ^{
-                    //[target.node remove];
                     [target removeFromSuperlayer];
+                    [target.node remove];
                     
                     wProp.hidden = YES;
                 };
