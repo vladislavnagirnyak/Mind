@@ -41,6 +41,7 @@
                             <outletCollection property="gestureRecognizers" destination="6pu-Q2-xlq" appends="YES" id="3ri-Qe-dzU"/>
                             <outletCollection property="gestureRecognizers" destination="Q6e-cr-6p3" appends="YES" id="lPY-f2-S97"/>
                             <outletCollection property="gestureRecognizers" destination="m58-Sd-ccS" appends="YES" id="T47-Xh-rFr"/>
+                            <outletCollection property="gestureRecognizers" destination="lws-Jv-VAF" appends="YES" id="R1r-h1-vAc"/>
                         </connections>
                     </scrollView>
                     <toolbarItems/>

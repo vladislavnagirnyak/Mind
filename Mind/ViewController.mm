@@ -40,8 +40,6 @@ typedef enum : NSUInteger {
     IBOutlet UITapGestureRecognizer *_tapRecognizer;
     IBOutlet UITapGestureRecognizer *_doubleTapRecognizer;
     IBOutlet UIPanGestureRecognizer *_panRecognizer;
-    
-    UIPanGestureRecognizer *_scrollViewPanRecognizer;
 }
 
 @end
@@ -102,27 +100,9 @@ typedef enum : NSUInteger {
              sender.state == UIGestureRecognizerStateCancelled) {
         [self actionWith:sender state:NVS_MOVE_NODE isStart:NO];
     }
-    else {
-        if (_selected) {
-            CGPoint location = CGPointApplyAffineTransform(utsfLocation, self.view.transform);
-            [_selected setPosition:VAdd(location, _deltaMove) flags:0];
-        }
-        else {
-            //if (CGRectContainsRect(_rootView.frame, _rootView.bounds)) {
-            //CGSize s = _rootView.frame.size;
-            //CGPoint point = VAdd(utsfLocation, _deltaMove);
-            
-            //((UIScrollView*)_rootView).scrollEnabled = YES;
-            
-            
-            //[_rootView addGestureRecognizer:_scrollViewPanRecognizer];
-            //_rootView.contentOffset = point;
-            
-            //_rootView.transform = CGAffineTransformTranslate(_rootView.transform, point.x, point.y);
-            //} else {
-            //self.view.frame = self.view.bounds;
-            //}
-        }
+    else if (_selected) {
+        CGPoint location = CGPointApplyAffineTransform(utsfLocation, _rootView.transform);
+        [_selected setPosition:VAdd(location, _deltaMove) flags:0];
     }
 }
 
@@ -178,11 +158,6 @@ typedef enum : NSUInteger {
                 
                 if ((_selected = target)) {
                     _deltaMove = VSub(_selected.position, location);
-                } else {
-                    //[_rootView removeGestureRecognizer:_panRecognizer];
-                    CGSize s = _rootView.frame.size;
-                    //_deltaMove = VSub(_rootView.contentOffset, utsfLocation);
-                    //NSLog(@"log");
                 }
             }
             else _selected = nil;
@@ -229,29 +204,17 @@ typedef enum : NSUInteger {
     return nil;
 }
 
-- (void)scrollViewDidEndScrollingAnimation:(UIScrollView *)scrollView {
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer {
+    if (gestureRecognizer == _panRecognizer ||
+        otherGestureRecognizer == _panRecognizer) {
+        [self panned:_panRecognizer];
+        
+        if (_selected) {
+            return NO;
+        }
+    }
     
-}
-
-- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
-    //NSLog(@"1");
-    /*if (!_selected) {
-        CGSize boundsSize = _rootView.bounds.size;
-        CGRect contentsFrame = _rootView.frame;
-        
-        if (contentsFrame.size.width < boundsSize.width) {
-            contentsFrame.origin.x = (boundsSize.width - contentsFrame.size.width) / 2.0;
-        } else {
-            contentsFrame.origin.x = 0.0;
-        }
-        
-        if (contentsFrame.size.height < boundsSize.height) {
-            contentsFrame.origin.y = (boundsSize.height - contentsFrame.size.height) / 2.0;
-        } else {
-            contentsFrame.origin.y = 0.0;
-        }
-        _rootView.frame = contentsFrame;
-    }*/
+    return YES;
 }
 
 - (void)viewDidLoad {
@@ -259,28 +222,12 @@ typedef enum : NSUInteger {
     
     [_tapRecognizer requireGestureRecognizerToFail:_doubleTapRecognizer];
     
+    _rootView = self.view;
     
-    UIScrollView *scrollView = (UIScrollView*)self.view;
+    UIScrollView *scrollView = (UIScrollView*)_rootView;
     scrollView.contentSize = CGSizeMake(1000, 1000);
-    _scrollViewPanRecognizer = scrollView.panGestureRecognizer;
-    [scrollView addGestureRecognizer:_panRecognizer];
-    //scrollView.scrollEnabled = YES;
     
-    //scrollView.contentOffset = CGPointMake(200, 50);
-    _rootView = scrollView;
-    
-    
-    /*
-    CAScrollLayer *scrollLayer = [CAScrollLayer layer];
-    
-    scrollLayer.bounds = CGRectMake(0.0, 0.0, 300.0, 600.0); // 9
-    scrollLayer.position = CGPointMake(self.view.bounds.size.width/2, self.view.bounds.size.height/2); // 10
-    scrollLayer.borderColor = [UIColor blackColor].CGColor; // 11
-    scrollLayer.borderWidth = 5.0; // 12
-    scrollLayer.scrollMode = kCAScrollHorizontally; // 13
-    
-    [scrollView.layer addSublayer:scrollLayer];
-    */
+    self.navigationItem.titleView = [[UISegmentedControl alloc] initWithItems:@[@"Top to bottom", @"Custom"]];
     
     _grid = [[NVGrid alloc] init];
     CGFloat cellSize = M_SQRT2 * 50;
