@@ -8,6 +8,9 @@
 
 #import "NVTree.h"
 
+#define KEY_VALUE(s) [s stringByAppendingString: @"-v"]
+#define KEY_POSITION(s) [s stringByAppendingString: @"-p"]
+
 @implementation NVTree
 
 - (instancetype)initWithRoot:(NVNode *)root {

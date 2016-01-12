@@ -30,14 +30,19 @@
                         <viewControllerLayoutGuide type="top" id="MyK-Uo-prN"/>
                         <viewControllerLayoutGuide type="bottom" id="C0G-BJ-cpc"/>
                     </layoutGuides>
-                    <scrollView key="view" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" id="9Ht-8G-H7X">
+                    <scrollView key="view" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" ambiguous="YES" maximumZoomScale="10" id="9Ht-8G-H7X">
                         <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                        <subviews>
+                            <view contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="b7y-TR-Y34">
+                                <rect key="frame" x="-130" y="-39" width="949" height="687"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                            </view>
+                        </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <gestureRecognizers/>
                         <connections>
-                            <outlet property="delegate" destination="ROd-Zn-xog" id="CMR-xT-jWr"/>
-                            <outletCollection property="gestureRecognizers" destination="j1a-yQ-Yyq" appends="YES" id="l0c-x6-kvp"/>
+                            <outlet property="delegate" destination="ROd-Zn-xog" id="KF9-uf-4r1"/>
                             <outletCollection property="gestureRecognizers" destination="6pu-Q2-xlq" appends="YES" id="3ri-Qe-dzU"/>
                             <outletCollection property="gestureRecognizers" destination="Q6e-cr-6p3" appends="YES" id="lPY-f2-S97"/>
                             <outletCollection property="gestureRecognizers" destination="m58-Sd-ccS" appends="YES" id="T47-Xh-rFr"/>
@@ -67,12 +72,6 @@
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="d8O-ss-BwD" userLabel="First Responder" sceneMemberID="firstResponder"/>
-                <pinchGestureRecognizer id="j1a-yQ-Yyq">
-                    <connections>
-                        <action selector="pinched:" destination="ROd-Zn-xog" id="vFF-kP-f5H"/>
-                        <outlet property="delegate" destination="ROd-Zn-xog" id="sPf-hl-Cpo"/>
-                    </connections>
-                </pinchGestureRecognizer>
                 <panGestureRecognizer minimumNumberOfTouches="1" id="lws-Jv-VAF">
                     <connections>
                         <action selector="panned:" destination="ROd-Zn-xog" id="OQI-wL-qvr"/>

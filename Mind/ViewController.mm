@@ -27,15 +27,13 @@ typedef enum : NSUInteger {
 @interface ViewController () <UIGestureRecognizerDelegate, UIScrollViewDelegate> {
     UIView *_rootView;
     NVTree *_tree;
-    CGFloat _deltaScale;
-    CGFloat _deltaRotate;
     CGPoint _deltaMove;
     NVTreeDrawer *_selected;
     NVGrid *_grid;
     NVItemPropertyView *_itemProp;
     UITextField *_textField;
-    NVStateControllerEnum _state;
-    id<NVStrategyDraw> _strategy;
+    //NVStateControllerEnum _state;
+    NSMutableArray<id<NVStrategyDraw>> *_strategies;
     
     IBOutlet UITapGestureRecognizer *_tapRecognizer;
     IBOutlet UITapGestureRecognizer *_doubleTapRecognizer;
@@ -69,29 +67,15 @@ typedef enum : NSUInteger {
     
     NVTreeDrawer *drawer = [[NVTreeDrawer alloc] initWithNode:_tree.root onLayer:_rootView.layer withGrid:_grid];
     
-    drawer.strategy = _strategy;
+    drawer.strategy = _strategies.firstObject;
     
     if (!mindMap) {
-        [_strategy draw:drawer];
+        [_strategies.firstObject draw:drawer];
     }
-}
-
-- (IBAction)pinched:(UIPinchGestureRecognizer *)sender {
-    CGAffineTransformHelper p = CGAffineTransformHelper(_rootView.layer.affineTransform); //previus transformation
-    if (sender.state == UIGestureRecognizerStateBegan) {
-        _deltaScale = p.getScale().x;
-    }
-    
-    CGFloat scale = sender.scale * _deltaScale;
-    if (scale < 1.0)
-        scale = 1.0;
-    
-    p.setScale(V(scale, scale));
-    _rootView.layer.affineTransform = p;
 }
 
 - (IBAction)panned:(UIPanGestureRecognizer *)sender {
-    CGPoint utsfLocation = [sender locationInView:self.view];
+    CGPoint location = [self locationFrom:sender];
     
     if (sender.state == UIGestureRecognizerStateBegan) {
         [self actionWith:sender state:NVS_MOVE_NODE isStart:YES];
@@ -101,7 +85,6 @@ typedef enum : NSUInteger {
         [self actionWith:sender state:NVS_MOVE_NODE isStart:NO];
     }
     else if (_selected) {
-        CGPoint location = CGPointApplyAffineTransform(utsfLocation, _rootView.transform);
         [_selected setPosition:VAdd(location, _deltaMove) flags:0];
     }
 }
@@ -117,9 +100,12 @@ typedef enum : NSUInteger {
     [self actionWith:sender state:NVS_RENAME isStart:YES];
 }
 
-- (void)actionWith: (UIGestureRecognizer*)recognizer state:(NVStateControllerEnum)state isStart:(BOOL)start {
-    CGPoint utsfLocation = [recognizer locationInView:_rootView];
-    CGPoint location = CGPointApplyAffineTransform(utsfLocation, _rootView.layer.affineTransform);
+- (CGPoint)locationFrom:(UIGestureRecognizer*)sender {
+    return [sender locationInView:self.view];
+}
+
+- (void)actionWith: (UIGestureRecognizer*)sender state:(NVStateControllerEnum)state isStart:(BOOL)start {
+    CGPoint location = [self locationFrom: sender];
     NVTreeDrawer *target = [self getTargetByPos:location];
     
     _itemProp.hidden = YES;
@@ -128,7 +114,7 @@ typedef enum : NSUInteger {
         case NVS_RENAME:
             if (start) {
                 if (!_textField.hidden && _selected)
-                   [self actionWith:recognizer state:NVS_RENAME isStart:NO];
+                   [self actionWith:sender state:NVS_RENAME isStart:NO];
                 
                 if (target) {
                     _textField.hidden = NO;
@@ -136,7 +122,7 @@ typedef enum : NSUInteger {
                     target.label.hidden = YES;
                     _textField.center = target.position;
                     [_textField becomeFirstResponder];
-                    [self.view bringSubviewToFront:_textField];
+                    [_rootView bringSubviewToFront:_textField];
                     _selected = target;
                 }
             } else {
@@ -153,7 +139,7 @@ typedef enum : NSUInteger {
         case NVS_MOVE_NODE:
             if (start) {
                 if (!_textField.hidden && _selected) {
-                    [self actionWith:recognizer state:NVS_RENAME isStart:NO];
+                    [self actionWith:sender state:NVS_RENAME isStart:NO];
                 }
                 
                 if ((_selected = target)) {
@@ -165,7 +151,7 @@ typedef enum : NSUInteger {
             break;
         case NVS_PROPERTY:
             if (!_textField.hidden && _selected) {
-                [self actionWith:recognizer state:NVS_RENAME isStart:NO];
+                [self actionWith:sender state:NVS_RENAME isStart:NO];
             }
             if (target) {
                 _itemProp.hidden = NO;
@@ -193,7 +179,6 @@ typedef enum : NSUInteger {
 }
 
 - (NVTreeDrawer*)getTargetByPos: (CGPoint)position {
-    position = VSub(position, _rootView.layer.bounds.origin);
     CALayer *target = [_rootView.layer hitTest:position];
 
     if ([target isKindOfClass:[NVTreeDrawer class]])
@@ -205,16 +190,32 @@ typedef enum : NSUInteger {
 }
 
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer {
-    if (gestureRecognizer == _panRecognizer ||
-        otherGestureRecognizer == _panRecognizer) {
-        [self panned:_panRecognizer];
-        
-        if (_selected) {
-            return NO;
+    
+    if ((gestureRecognizer == _panRecognizer ||
+        otherGestureRecognizer == _panRecognizer) &&
+        [gestureRecognizer isKindOfClass:[UIPanGestureRecognizer class]] &&
+        [otherGestureRecognizer isKindOfClass:[UIPanGestureRecognizer class]]) {
+        if (_panRecognizer.state == UIGestureRecognizerStateBegan) {
+            if ([self getTargetByPos:[self locationFrom:_panRecognizer]])
+                return NO;
+        }
+
+        if (!_selected) {
+            return YES;
         }
     }
     
-    return YES;
+    return NO;
+}
+
+- (UIView*)viewForZoomingInScrollView:(UIScrollView *)scrollView {
+    return _rootView;
+}
+
+- (void)scrollViewDidZoom:(UIScrollView *)scrollView {
+    CGFloat scale = scrollView.zoomScale;
+    CGSize size = _rootView.bounds.size;
+    scrollView.contentSize = CGSizeMake(size.width * scale, size.height * scale);
 }
 
 - (void)viewDidLoad {
@@ -222,10 +223,7 @@ typedef enum : NSUInteger {
     
     [_tapRecognizer requireGestureRecognizerToFail:_doubleTapRecognizer];
     
-    _rootView = self.view;
-    
-    UIScrollView *scrollView = (UIScrollView*)_rootView;
-    scrollView.contentSize = CGSizeMake(1000, 1000);
+    _rootView = self.view.subviews.firstObject;
     
     self.navigationItem.titleView = [[UISegmentedControl alloc] initWithItems:@[@"Top to bottom", @"Custom"]];
     
@@ -233,23 +231,27 @@ typedef enum : NSUInteger {
     CGFloat cellSize = M_SQRT2 * 50;
     _grid.cellSize = CGSizeMake(cellSize, cellSize);
     
-    _strategy = [[NVStrategyDraw alloc] initWithStart:V(CGRectGetWidth(_rootView.frame) / 2.0, 50.0) withGrid:_grid];
+    _strategies = [[NSMutableArray alloc] init];
+    [_strategies addObject: [[NVStrategyDraw alloc] initWithStart:V(CGRectGetWidth(_rootView.frame) / 2.0, 50) withGrid:_grid]];
     
     [self onLoad:nil];
     
     NVTreeDrawer *rootDrawer = _tree.root.drawer;
     
+    UIScrollView *scrollView = (UIScrollView*)self.view;
+    scrollView.contentSize = _rootView.bounds.size;
+    
     _itemProp = [[NVItemPropertyView alloc] initWithFrame:rootDrawer.frame];
     _itemProp.hidden = YES;
-    [self.view addSubview:_itemProp];
+    [_rootView addSubview:_itemProp];
     
     _textField = [[UITextField alloc] initWithFrame:CGRectMake(0, 0, 100, 50)];
     _textField.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
     _textField.textAlignment = NSTextAlignmentCenter;
     NSString *fontName = (__bridge NSString *)rootDrawer.label.font;
     _textField.font = [UIFont fontWithName:fontName size:rootDrawer.label.fontSize];
-    [self.view addSubview:_textField];
     _textField.hidden = YES;
+    [_rootView addSubview:_textField];
 }
 
 - (void)didReceiveMemoryWarning {
