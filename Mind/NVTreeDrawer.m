@@ -16,6 +16,8 @@ typedef NVNode<NVTreeDrawer*> NVTNode;
 
 static double sNVTreeNodePadding = 20;
 static double sNVTreeNodeRadius = 50;
+static CGPoint sMinPos;
+static CGPoint sMaxPos;
 
 @interface NVTreeDrawer() {
     NVGrid *_grid;
@@ -29,6 +31,14 @@ static double sNVTreeNodeRadius = 50;
 @implementation NVTreeDrawer
 
 @synthesize label = _label, path = _path;
+
++ (CGPoint)minPoint {
+    return sMinPos;
+}
+
++ (CGPoint)maxPoint {
+    return sMaxPos;
+}
 
 - (NVTreeDrawer*)parent {
     if (_node.parent) {
@@ -52,7 +62,7 @@ static double sNVTreeNodeRadius = 50;
         _node.drawer = self;
         
         self.label.string = _node.value;
-        [super setPosition:UnnormalizedPos(node.position, layer.bounds)];
+        [self setPosition:UnnormalizedPos(node.position, layer.bounds) flags:NVTD_CHILD_NOT_UPDATE];
         
         if (_node.parent) {
             [layer addSublayer:self.path];
@@ -154,6 +164,13 @@ static double sNVTreeNodeRadius = 50;
     _node.position = NormalizedPos(position, self.superlayer.bounds);
     
     //BOOL result = [_grid moveObjectFromPoint:self.position toPoint:position isReplace:NO];
+    
+    sMinPos.x = position.x < sMinPos.x ? position.x - self.radius : sMinPos.x;
+    sMinPos.y = position.y < sMinPos.y ? position.y - self.radius : sMinPos.y;
+    
+    sMaxPos.x = position.x > sMaxPos.x ? position.x + self.radius : sMaxPos.x;
+    sMaxPos.y = position.y > sMaxPos.y ? position.y + self.radius : sMaxPos.y;
+    
     [_grid removeObjectInPoint:self.position];
     [super setPosition:position];
     [_grid setObject:self inPoint:position];
@@ -230,9 +247,6 @@ static double sNVTreeNodeRadius = 50;
     _strategy = strategy;
     for (NVTNode *item in _node.children) {
         item.drawer.strategy = strategy;
-        /*if ([item isKindOfClass:[self class]]) {
-            ((NVTreeDrawer*)item.drawer).strategy = strategy;
-        }*/
     }
 }
 
@@ -257,7 +271,6 @@ static double sNVTreeNodeRadius = 50;
     
     for (NVTNode *item in _node.children) {
         if (item.drawer) {
-            [_grid removeObject:item.drawer];
             [item.drawer removeFromSuperlayer];
         }
     }

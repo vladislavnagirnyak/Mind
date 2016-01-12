@@ -22,10 +22,13 @@ typedef enum : NSUInteger {
 @property(readonly) CATextLayer *label;
 @property CGFloat radius;
 @property CGFloat padding;
-@property id<NVStrategyDraw> strategy;
+@property(nonatomic) id<NVStrategyDraw> strategy;
 
 - (instancetype)initWithNode:(NVNode*)node onLayer:(CALayer*)layer withGrid:(NVGrid*)grid;
 - (void)setPosition:(CGPoint)location flags:(NSUInteger)flags;
 - (void)addChild;
+
++ (CGPoint)minPoint;
++ (CGPoint)maxPoint;
 
 @end

@@ -101,12 +101,17 @@ typedef enum : NSUInteger {
 }
 
 - (CGPoint)locationFrom:(UIGestureRecognizer*)sender {
-    return [sender locationInView:self.view];
+    UIScrollView *scrollView = (UIScrollView*)self.view;
+    CGPoint point = [sender locationInView:scrollView];
+    if (scrollView.zoomScale != 1.0) {
+        point = VDivN(point, scrollView.zoomScale);
+    }
+    return point;
 }
 
 - (void)actionWith: (UIGestureRecognizer*)sender state:(NVStateControllerEnum)state isStart:(BOOL)start {
     CGPoint location = [self locationFrom: sender];
-    NVTreeDrawer *target = [self getTargetByPos:location];
+    NVTreeDrawer *target = [self getTarget:sender];
     
     _itemProp.hidden = YES;
     
@@ -117,18 +122,18 @@ typedef enum : NSUInteger {
                    [self actionWith:sender state:NVS_RENAME isStart:NO];
                 
                 if (target) {
-                    _textField.hidden = NO;
                     _textField.text = target.node.value;
-                    target.label.hidden = YES;
                     _textField.center = target.position;
-                    [_textField becomeFirstResponder];
                     [_rootView bringSubviewToFront:_textField];
+                    _textField.hidden = NO;
+                    target.label.hidden = YES;
+                    [_textField becomeFirstResponder];
                     _selected = target;
                 }
             } else {
-                _textField.hidden = YES;
                 _selected.label.string = _textField.text;
                 _selected.label.hidden = NO;
+                _textField.hidden = YES;
                 _selected.node.value = _textField.text;
                 [_textField resignFirstResponder];
                 _selected = nil;
@@ -178,8 +183,8 @@ typedef enum : NSUInteger {
     }
 }
 
-- (NVTreeDrawer*)getTargetByPos: (CGPoint)position {
-    CALayer *target = [_rootView.layer hitTest:position];
+- (NVTreeDrawer*)getTarget: (UIGestureRecognizer*)sender {
+    CALayer *target = [_rootView.layer hitTest:[sender locationInView:self.view]];
 
     if ([target isKindOfClass:[NVTreeDrawer class]])
         return (NVTreeDrawer*)target;
@@ -196,7 +201,7 @@ typedef enum : NSUInteger {
         [gestureRecognizer isKindOfClass:[UIPanGestureRecognizer class]] &&
         [otherGestureRecognizer isKindOfClass:[UIPanGestureRecognizer class]]) {
         if (_panRecognizer.state == UIGestureRecognizerStateBegan) {
-            if ([self getTargetByPos:[self locationFrom:_panRecognizer]])
+            if ([self getTarget: _panRecognizer])
                 return NO;
         }
 
@@ -237,6 +242,12 @@ typedef enum : NSUInteger {
     [self onLoad:nil];
     
     NVTreeDrawer *rootDrawer = _tree.root.drawer;
+    
+    CGPoint min = [NVTreeDrawer minPoint];
+    CGPoint max = [NVTreeDrawer maxPoint];
+    
+    _rootView.bounds = CGRectMake(min.x, min.y, max.x - min.x, max.y - min.y);
+    _rootView.frame = _rootView.bounds;
     
     UIScrollView *scrollView = (UIScrollView*)self.view;
     scrollView.contentSize = _rootView.bounds.size;
