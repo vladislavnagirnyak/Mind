@@ -69,7 +69,7 @@ typedef enum : NSUInteger {
     
     drawer.strategy = _strategies.firstObject;
     
-    if (!mindMap) {
+    if (mindMap) {
         [_strategies.firstObject draw:drawer];
     }
 }
@@ -111,16 +111,16 @@ typedef enum : NSUInteger {
 
 - (void)actionWith: (UIGestureRecognizer*)sender state:(NVStateControllerEnum)state isStart:(BOOL)start {
     CGPoint location = [self locationFrom: sender];
-    NVTreeDrawer *target = [self getTarget:sender];
+    NVTreeDrawer *target = [self getTarget: sender];
     
     _itemProp.hidden = YES;
+    
+    if (!_textField.hidden && _selected)
+        [self actionWith:sender state:NVS_RENAME isStart:NO];
     
     switch (state) {
         case NVS_RENAME:
             if (start) {
-                if (!_textField.hidden && _selected)
-                   [self actionWith:sender state:NVS_RENAME isStart:NO];
-                
                 if (target) {
                     _textField.text = target.node.value;
                     _textField.center = target.position;
@@ -143,21 +143,13 @@ typedef enum : NSUInteger {
             break;
         case NVS_MOVE_NODE:
             if (start) {
-                if (!_textField.hidden && _selected) {
-                    [self actionWith:sender state:NVS_RENAME isStart:NO];
-                }
-                
-                if ((_selected = target)) {
+                if ((_selected = target))
                     _deltaMove = VSub(_selected.position, location);
-                }
             }
             else _selected = nil;
             
             break;
         case NVS_PROPERTY:
-            if (!_textField.hidden && _selected) {
-                [self actionWith:sender state:NVS_RENAME isStart:NO];
-            }
             if (target) {
                 _itemProp.hidden = NO;
                 [_rootView bringSubviewToFront:_itemProp];
@@ -246,7 +238,7 @@ typedef enum : NSUInteger {
     CGPoint min = [NVTreeDrawer minPoint];
     CGPoint max = [NVTreeDrawer maxPoint];
     
-    _rootView.bounds = CGRectMake(min.x, min.y, max.x - min.x, max.y - min.y);
+    _rootView.bounds = CGRectMake(0, 0, max.x - min.x, max.y - min.y);
     _rootView.frame = _rootView.bounds;
     
     UIScrollView *scrollView = (UIScrollView*)self.view;

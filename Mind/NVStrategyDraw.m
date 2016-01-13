@@ -12,7 +12,7 @@
 @interface NVStrategyDraw() {
     CGPoint _startPoint;
     NVGrid *_grid;
-    NSMutableArray *_levelMap;
+    //NSMutableArray *_levelMap;
 }
 
 @end
@@ -24,7 +24,7 @@
     if (self) {
         _startPoint = point;
         _grid = grid;
-        _levelMap = [[NSMutableArray alloc] init];
+        //_levelMap = [[NSMutableArray alloc] init];
     }
     return self;
 }
@@ -35,7 +35,9 @@
 }
 
 -(void)draw:(NVTreeDrawer*)data {
-    [self buildLevelMap:data withStart:data.node.level];
+    [self drawTopToBottom:data.node inPoint:_startPoint];
+    
+    /*[self buildLevelMap:data withStart:data.node.level];
     
     size_t radius = data.radius;
     size_t padding = data.padding;
@@ -45,22 +47,28 @@
         [xOffsets addObject:[NSNumber numberWithInt:-item.unsignedIntegerValue * (radius * 2 + padding) / 2 + radius + padding / 2 ]];
     }
     
-    /*NSMutableArray *queue = [[NSMutableArray alloc] init];
-    [queue addObject:data];
-    while (!queue.count) {
-        NVTreeDrawer *drawer = queue.lastObject;
-        [queue removeLastObject];
-        
-        // посетить drawer
-        
-        [queue addObjectsFromArray:drawer.children];
-    }*/
-
-    
-    [self drawTopToBottom:data inPoint:_startPoint offsets: xOffsets];
+    [self drawTopToBottom:data inPoint:_startPoint offsets: xOffsets];*/
 }
 
-- (void)buildLevelMap: (NVTreeDrawer*)drawer withStart:(size_t)startLevel {
+- (void)drawTopToBottom:(NVNode*)node inPoint:(CGPoint)point {
+    __block CGFloat yOffset = point.y;
+    size_t radius = 50;
+    size_t padding = 20;
+    [node foreachLevel:^(NSArray<NVNode *> *items) {
+        CGFloat xOffset = point.x - items.count * (radius * 2 + padding) / 2;
+        
+        for (NVNode *item in items) {
+            CGPoint newPos = V(xOffset, yOffset);
+            NVTreeDrawer *drawer = item.drawer;
+            [drawer setPosition:newPos flags: NVTD_CHILD_NOT_UPDATE];
+            xOffset += radius * 2 + padding;
+        }
+        
+        yOffset += radius * 2 + padding;
+    }];
+}
+
+/*- (void)buildLevelMap: (NVTreeDrawer*)drawer withStart:(size_t)startLevel {
     size_t level = drawer.node.level - startLevel;
     
     if (startLevel - level == 0) {
@@ -78,9 +86,9 @@
     for (NVNode *item in drawer.node.children) {
         [self buildLevelMap:item.drawer withStart:startLevel];
     }
-}
+}*/
 
-- (void)drawTopToBottom:(NVTreeDrawer*)data inPoint:(CGPoint)inPoint offsets:(NSMutableArray*)offsets {
+/*- (void)drawTopToBottom:(NVTreeDrawer*)data inPoint:(CGPoint)inPoint offsets:(NSMutableArray*)offsets {
     
     size_t radius = data.radius;
     size_t padding = data.padding;
@@ -102,6 +110,6 @@
             xOffset += radius * 2 + padding;
         }
     }
-}
+}*/
 
 @end

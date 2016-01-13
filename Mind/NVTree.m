@@ -8,8 +8,10 @@
 
 #import "NVTree.h"
 
-#define KEY_VALUE(s) [s stringByAppendingString: @"-v"]
-#define KEY_POSITION(s) [s stringByAppendingString: @"-p"]
+#define KEY(n) [NSString stringWithFormat:@"%zu", n]
+#define KEY_VALUE(s) [s stringByAppendingString: @"-val"]
+#define KEY_POSITION(s) [s stringByAppendingString: @"-pos"]
+#define KEY_COUNT(s) [s stringByAppendingString: @"-cnt"]
 
 @implementation NVTree
 
@@ -23,42 +25,39 @@
 }
 
 - (void)encodeWithCoder:(NSCoder *)aCoder {
-    [self encodeWithCoder:aCoder withNode:_root ];
+    //size_t offset = 0;
+    [self encodeWithCoder:aCoder withNode:_root /*offset:&offset*/];
 }
 
-- (void)encodeWithCoder:(NSCoder*)aCoder withNode:(NVNode*)node {
-    /*size_t offset = node.parent ? [node.parent.children indexOfObject:node] : 0;
-    
-    NSString *key = [NSString stringWithFormat:@"%zu-%zu", offset, node.level];
-    
-    [aCoder encodeObject:node.value forKey:[key stringByAppendingString:@"-value"]];
-    [aCoder encodeCGPoint:node.position forKey:[key stringByAppendingString:@"-position"]];
-    [aCoder encodeObject:@(node.children.count) forKey:[key stringByAppendingString:@"-count"]];*/
+- (void)encodeWithCoder:(NSCoder*)aCoder withNode:(NVNode*)node /*offset:(size_t*)offset*/ {
+    /*NSString *key = KEY(*offset++);
+    [aCoder encodeObject:node.value forKey:KEY_VALUE(key)];
+    [aCoder encodeCGPoint:node.position forKey:KEY_POSITION(key)];
+    [aCoder encodeObject:@(node.children.count) forKey:KEY_COUNT(key)];*/
     
     [aCoder encodeObject:node.value];
     [aCoder encodeObject:[NSValue valueWithCGPoint:node.position]];
     [aCoder encodeObject:@(node.children.count)];
     
     for (NVNode *item in node.children) {
-        [self encodeWithCoder:aCoder withNode:item];
+        [self encodeWithCoder:aCoder withNode:item /*offset:offset*/];
     }
 }
 
-- (NVNode*)createWithCoder:(NSCoder *)aDecoder withParent:(NVNode*)parent offset:(size_t)offset{
+- (NVNode*)createWithCoder:(NSCoder *)aDecoder withParent:(NVNode*)parent /*offset:(size_t*)offset*/ {
     NVNode *node = [[NVNode alloc] initWithParent:parent];
     
-    /*NSString *key = [NSString stringWithFormat:@"%zu-%zu", offset, node.level];
-
-    node.value = [aDecoder decodeObjectForKey:[key stringByAppendingString: @"-value"]];
-    node.position = [[aDecoder decodeObjectForKey:[key stringByAppendingString: @"-position"]]CGPointValue];
-    size_t childrenCount = [[aDecoder decodeObjectForKey:[key stringByAppendingString: @"-count"]] unsignedLongLongValue];*/
+    /*NSString *key = KEY(*offset++);
+    node.value = [aDecoder decodeObjectForKey:KEY_VALUE(key)];
+    node.position = [[aDecoder decodeObjectForKey:KEY_POSITION(key)] CGPointValue];
+    size_t childrenCount = [[aDecoder decodeObjectForKey:KEY_COUNT(key)] unsignedLongLongValue];*/
     
     node.value = [aDecoder decodeObject];
     node.position = [[aDecoder decodeObject] CGPointValue];
     size_t childrenCount = [[aDecoder decodeObject] unsignedLongLongValue];
     
     for (size_t i = 0; i < childrenCount; i++) {
-        [self createWithCoder:aDecoder withParent:node offset:i];
+        [self createWithCoder:aDecoder withParent:node /*offset:offset*/];
     }
     
     return node;
@@ -67,7 +66,8 @@
 - (instancetype)initWithCoder:(NSCoder *)aDecoder {
     self = [super init];
     if (self) {
-        _root = [self createWithCoder:aDecoder withParent:nil offset:0];
+        //size_t offset = 0;
+        _root = [self createWithCoder:aDecoder withParent:nil/* offset:&offset*/];
     }
     return self;
 }
