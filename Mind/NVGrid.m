@@ -97,7 +97,7 @@
     if (pair) {
         NVPair *pairTarget = [self getPair:to];
         
-        if (pairTarget) {
+        if (pairTarget && pair != pairTarget) {
             if (isReplace)
                 [_items removeObject:pairTarget];
             else return NO;

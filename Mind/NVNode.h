@@ -26,12 +26,19 @@
 @interface NVNode<__covariant ObjectType:NVNode*> : NSObject<NVNode>
 @end*/
 
-@interface NVNode<__covariant DrawerType:CALayer*> : NSObject
+@protocol NVNodeDelegate <NSObject>
+
+- (void)setPosition:(CGPoint)position;
+- (CGPoint)position;
+
+@end
+
+@interface NVNode<__covariant DelegateType:id<NVNodeDelegate>> : NSObject
 
 @property(weak) NVNode* parent;
 @property NSArray<NVNode*> *children;
-@property(nonatomic) size_t level;
-@property(weak) DrawerType drawer;
+@property size_t level;
+@property(weak) DelegateType delegate;
 
 @property NSString *value;
 @property CGPoint position;
@@ -42,7 +49,8 @@
 - (NVNode*)findRoot;
 - (void)addChild: (NVNode*)child;
 - (void)remove;
-- (void)foreach: (void(^)(NVNode *node))action;
+- (BOOL)foreach: (BOOL(^)(NVNode *node))action;
 - (void)foreachLevel: (void(^)(NSArray<NVNode*> *items))action;
+- (BOOL)onPath: (NVNode*)node;
 
 @end

@@ -45,6 +45,14 @@
     }
 }
 
+- (void)setPosition:(CGPoint)position {
+    _position = position;
+    
+    /*if (_delegate) {
+        [_delegate setPosition:_position];
+    }*/
+}
+
 - (instancetype)initWithDictionary:(NSDictionary *)dictionary withParent:(NVNode*)parent {
     self = [self initWithParent:parent];
     if (self) {
@@ -75,10 +83,15 @@
 
 - (NVNode*)findRoot {
     NVNode *root = self.parent;
-    while (root.parent) {
-        root = root.parent;
+    
+    if (root) {
+        while (root.parent)
+            root = root.parent;
+
+        return root;
     }
-    return root;
+    
+    return self;
 }
 
 - (void)addChild: (NVNode*)child {
@@ -103,12 +116,18 @@
     _value = nil;
 }
 
-- (void)foreach:(void (^)(NVNode *))action {
-    action(self);
+- (BOOL)foreach:(BOOL (^)(NVNode *))action {
+    BOOL result = action(self);
     
-    for (NVNode *child in self.children) {
-        [child foreach:action];
-    }
+    if (result)
+        for (NVNode *child in self.children) {
+            result = [child foreach:action];
+            if (!result) {
+                break;
+            }
+        }
+    
+    return result;
 }
 
 - (void)foreachLevel: (void(^)(NSArray<NVNode*> *items))action {
@@ -137,6 +156,18 @@
         currentIndex++;
         [queue addObjectsFromArray:node.children];
     }
+}
+
+- (BOOL)onPath:(NVNode *)node {
+    NVNode *root = self;
+    
+    while (root) {
+        if (root == node)
+            return YES;
+        root = root.parent;
+    }
+    
+    return NO;
 }
 
 @end

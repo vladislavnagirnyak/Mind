@@ -16,7 +16,7 @@ typedef enum : NSUInteger {
     NVTD_CHILD_NOT_UPDATE = 1 << 1,
 } NVTDFLAGS;
 
-@interface NVTreeDrawer : CALayer
+@interface NVTreeDrawer : CALayer<NVNodeDelegate>
 
 @property NVNode<NVTreeDrawer*> *node;
 @property(readonly) CATextLayer *label;
@@ -24,7 +24,7 @@ typedef enum : NSUInteger {
 @property CGFloat padding;
 @property(nonatomic) id<NVStrategyDraw> strategy;
 
-- (instancetype)initWithNode:(NVNode*)node onLayer:(CALayer*)layer withGrid:(NVGrid*)grid;
+- (instancetype)initWithNode:(NVNode*)node onLayer:(CALayer*)layer /*withGrid:(NVGrid*)grid*/;
 - (void)setPosition:(CGPoint)location flags:(NSUInteger)flags;
 - (void)addChild;
 

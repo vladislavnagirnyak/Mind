@@ -21,7 +21,7 @@
 
 @interface NVStrategyDraw : NSObject<NVStrategyDraw>
 
--(instancetype)initWithStart: (CGPoint)point withGrid:(NVGrid*)grid;
+-(instancetype)initWithStart: (CGPoint)point /*withGrid:(NVGrid*)grid*/;
 -(void)draw:(NVTreeDrawer*)data;
 -(void)addChild:(NVTreeDrawer*)child;
 

@@ -29,7 +29,7 @@ typedef enum : NSUInteger {
     NVTree *_tree;
     CGPoint _deltaMove;
     NVTreeDrawer *_selected;
-    NVGrid *_grid;
+    //NVGrid *_grid;
     NVItemPropertyView *_itemProp;
     UITextField *_textField;
     //NVStateControllerEnum _state;
@@ -59,17 +59,17 @@ typedef enum : NSUInteger {
     if (!mindMap) {
         _tree = [[NVTree alloc] initWithRoot:[[NVNode alloc] init]];
     } else {
-        [_tree.root.drawer removeFromSuperlayer];
-        [_grid clear];
+        [_tree.root.delegate removeFromSuperlayer];
+        //[_grid clear];
         
         _tree = [NSKeyedUnarchiver unarchiveObjectWithData:mindMap];
     }
     
-    NVTreeDrawer *drawer = [[NVTreeDrawer alloc] initWithNode:_tree.root onLayer:_rootView.layer withGrid:_grid];
+    NVTreeDrawer *drawer = [[NVTreeDrawer alloc] initWithNode:_tree.root onLayer:_rootView.layer /*withGrid:_grid*/];
     
     drawer.strategy = _strategies.firstObject;
     
-    if (mindMap) {
+    if (!mindMap) {
         [_strategies.firstObject draw:drawer];
     }
 }
@@ -224,16 +224,16 @@ typedef enum : NSUInteger {
     
     self.navigationItem.titleView = [[UISegmentedControl alloc] initWithItems:@[@"Top to bottom", @"Custom"]];
     
-    _grid = [[NVGrid alloc] init];
-    CGFloat cellSize = M_SQRT2 * 50;
-    _grid.cellSize = CGSizeMake(cellSize, cellSize);
+    //_grid = [[NVGrid alloc] init];
+    //CGFloat cellSize = M_SQRT2 * 50;
+    //_grid.cellSize = CGSizeMake(cellSize, cellSize);
     
     _strategies = [[NSMutableArray alloc] init];
-    [_strategies addObject: [[NVStrategyDraw alloc] initWithStart:V(CGRectGetWidth(_rootView.frame) / 2.0, 50) withGrid:_grid]];
+    [_strategies addObject: [[NVStrategyDraw alloc] initWithStart:V(CGRectGetWidth(_rootView.bounds) / 2.0, _rootView.frame.origin.y + 50) /*withGrid:_grid*/]];
     
     [self onLoad:nil];
     
-    NVTreeDrawer *rootDrawer = _tree.root.drawer;
+    NVTreeDrawer *rootDrawer = _tree.root.delegate;
     
     CGPoint min = [NVTreeDrawer minPoint];
     CGPoint max = [NVTreeDrawer maxPoint];

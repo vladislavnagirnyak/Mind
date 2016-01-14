@@ -20,7 +20,7 @@ static CGPoint sMinPos;
 static CGPoint sMaxPos;
 
 @interface NVTreeDrawer() {
-    NVGrid *_grid;
+    //NVGrid *_grid;
 }
 
 @property (readonly) CAShapeLayer *path;
@@ -42,7 +42,7 @@ static CGPoint sMaxPos;
 
 - (NVTreeDrawer*)parent {
     if (_node.parent) {
-        return _node.parent.drawer;
+        return _node.parent.delegate;
     }
     
     return nil;
@@ -50,26 +50,29 @@ static CGPoint sMaxPos;
 
 - (void)setParent:(NVTreeDrawer *)parent {
     if (_node.parent) {
-        _node.parent.drawer = parent;
+        _node.parent.delegate = parent;
     }
 }
 
-- (instancetype)initWithNode:(NVNode*)node onLayer:(CALayer*)layer withGrid:(NVGrid *) grid {
+- (instancetype)initWithNode:(NVNode*)node onLayer:(CALayer*)layer /*withGrid:(NVGrid *) grid*/ {
     self = [self init];
     if (self) {
         _node = node;
-        _grid = grid;
-        _node.drawer = self;
+        //_grid = grid;
+        _node.delegate = self;
         
         self.label.string = _node.value;
-        [self setPosition:UnnormalizedPos(node.position, layer.bounds) flags:NVTD_CHILD_NOT_UPDATE];
+        
+        CGPoint pos = UnnormalizedPos(node.position, layer.bounds);
+        
+        [self setPosition:pos flags:NVTD_CHILD_NOT_UPDATE];
         
         if (_node.parent) {
             [layer addSublayer:self.path];
         }
 
         for (NVNode *subnode in _node.children) {
-            [[NVTreeDrawer alloc] initWithNode:subnode onLayer:layer withGrid:grid];
+            [[NVTreeDrawer alloc] initWithNode:subnode onLayer:layer /*withGrid:grid*/];
         }
         
         [layer addSublayer:self];
@@ -135,46 +138,15 @@ static CGPoint sMaxPos;
     return sNVTreeNodePadding;
 }
 
-/*- (void)intersectionTest: (NVTreeDrawer*)item action: (void (^)(NVTreeDrawer*drawer, NVQuadCurve curve))action {
++ (void)updateMinMax:(CGPoint)pos withRadius:(CGFloat)radius {
+    sMinPos.x = pos.x < sMinPos.x ? pos.x - radius : sMinPos.x;
+    sMinPos.y = pos.y < sMinPos.y ? pos.y - radius : sMinPos.y;
+    
+    sMaxPos.x = pos.x > sMaxPos.x ? pos.x + radius : sMaxPos.x;
+    sMaxPos.y = pos.y > sMaxPos.y ? pos.y + radius : sMaxPos.y;
+}
 
-    NVTreeDrawer *parent = self.parent;
-    
-    if (self != item && item != parent && parent) {
-        NVCircle circle = C(item.position, item.radius);
-        NVRay ray = R(self.parent.position, VSub(self.position, self.parent.position));
-        NVQuadCurve curve;
-        if (IntersectCircleRay(circle, ray, &curve)) {
-            CGPoint delta = VMulN(VNormalize(ray.direction), circle.radius / 2);
-            curve.start = VSub(curve.start, delta);
-            curve.end = VAdd(curve.end, delta);
-            delta = VMulN(VNormalize(VSub(curve.control, circle.center)), circle.radius / 2);
-            //curve.control = VAdd(curve.control, delta);
-            action(item, curve);
-        }
-    }
-    
-    for (NVNode *child in item.node.children) {
-        [self intersectionTest:child.drawer action:action];
-    }
-}*/
-
-- (void)setPosition:(CGPoint)position flags:(NSUInteger)flags {
-    CGPoint delta = VSub(position, self.position);
-    
-    _node.position = NormalizedPos(position, self.superlayer.bounds);
-    
-    //BOOL result = [_grid moveObjectFromPoint:self.position toPoint:position isReplace:NO];
-    
-    sMinPos.x = position.x < sMinPos.x ? position.x - self.radius : sMinPos.x;
-    sMinPos.y = position.y < sMinPos.y ? position.y - self.radius : sMinPos.y;
-    
-    sMaxPos.x = position.x > sMaxPos.x ? position.x + self.radius : sMaxPos.x;
-    sMaxPos.y = position.y > sMaxPos.y ? position.y + self.radius : sMaxPos.y;
-    
-    [_grid removeObjectInPoint:self.position];
-    [super setPosition:position];
-    [_grid setObject:self inPoint:position];
-
+- (void)updatePath {
     if (self.parent) {
         UIBezierPath *path = [UIBezierPath new];
         CGPoint parentPos = self.parent.position;
@@ -182,26 +154,52 @@ static CGPoint sMaxPos;
         CGPoint normDir = VNormalize(dir);
         
         [path moveToPoint:VAdd(parentPos, VMulN(normDir, self.parent.radius))];
-
-        NSArray *items = [_grid getObjectsInRangePoint:self.parent.position end:self.position];
+        
+        //NSArray *items = [_grid getObjectsInRangePoint:self.parent.position end:self.position];
         
         NVTreeDrawer *parent = self.parent;
         
-        items = [items sortedArrayUsingComparator:^NSComparisonResult(NVTreeDrawer *obj1, NVTreeDrawer *obj2) {
-            CGFloat len1 = VLength(VSub(obj1.position, parent.position));
-            CGFloat len2 = VLength(VSub(obj2.position, parent.position));
+        NVNode *root = [_node findRoot];
+        
+        NVRay ray = NVRayMake(parent.position, VSub(self.position, parent.position));
+        
+        NSMutableArray *items = [[NSMutableArray alloc] init];
+        
+        [root foreach:^BOOL(NVTNode *node) {
+            if (node != _node) {
+                NVTNode *nodeParent = node.parent;
+                if (nodeParent) {
+                    NVRay nodeRay = NVRayMake(nodeParent.delegate.position, VSub(node.delegate.position, nodeParent.delegate.position));
+                    
+                    if (IntersectCircleRay(NVCircleMake(self.position, self.radius), nodeRay, nil)) {
+                        [node.delegate updatePath];
+                        return YES;
+                    }
+                }
+                
+                if (IntersectCircleRay(NVCircleMake(node.delegate.position, node.delegate.radius), ray, nil))
+                    [items addObject:node];
+            }
+            return YES;
+        }];
+        
+        items = [items sortedArrayUsingComparator:^NSComparisonResult(NVTNode *obj1, NVTNode *obj2) {
+            CGFloat len1 = VLength(VSub(obj1.delegate.position, parent.position));
+            CGFloat len2 = VLength(VSub(obj2.delegate.position, parent.position));
             if (len1 < len2)
                 return NSOrderedAscending;
-            else if (len1 > len2) return NSOrderedDescending;
+            else if (len1 > len2)
+                return NSOrderedDescending;
             
             return NSOrderedSame;
         }];
         
         //[items collision:^(NVTreeDrawer *first, NVTreeDrawer *second) {
-        for (NVTreeDrawer *item in items) {
-            if (self != item && item != parent && parent) {
+        for (NVNode *node in items) {
+            NVTreeDrawer *item = node.delegate;
+            
                 NVCircle circle = C(item.position, item.radius);
-                NVRay ray = R(self.parent.position, VSub(self.position, self.parent.position));
+            
                 NVQuadCurve curve;
                 if (IntersectCircleRay(circle, ray, &curve)) {
                     CGPoint delta = VMulN(VNormalize(ray.direction), circle.radius / 4);
@@ -214,46 +212,84 @@ static CGPoint sMaxPos;
                     [path addQuadCurveToPoint:curve.end controlPoint:curve.control];
                     [path moveToPoint:curve.end];
                 }
-            }
+            
         }
-        
-        /*[self intersectionTest:root action:^(NVTreeDrawer*item, NVQuadCurve curve){
-            [path addLineToPoint:curve.start];
-            [path moveToPoint:curve.start];
-            [path addQuadCurveToPoint:curve.end controlPoint:curve.control];
-            [path moveToPoint:curve.end];
-        }];*/
         
         [path addLineToPoint:VAdd(self.position, VMulN(VNegate(normDir), self.radius))];
         
         self.path.path = path.CGPath;
     }
+}
+
+- (void)intersectTest:(CGPoint)delta {
+    __block CGPoint position = self.position;
+
+    NVCircle c = NVCircleMake(position, self.radius);
+    
+    NVNode *root = [_node findRoot];
+    
+    [root foreach:^BOOL(NVNode *node) {
+        if (node != _node) {
+            NVTreeDrawer *item = node.delegate;
+        
+        NVCircle c1 = NVCircleMake(item.position, item.radius);
+        
+        if (IntersectCircleCircle(c, c1)) {
+            CGPoint dir = VSub(c1.center, c.center);
+            CGFloat n = (c.radius + c1.radius - VLength(dir)) / 2;
+            
+            if ([_node onPath:item.node]) {
+                [self setPosition: VSub(c1.center, VMulN(VNormalize(dir), c.radius + c1.radius + 1))];
+            } else {
+                [item setPosition: VAdd(c1.center, VMulN(VNormalize(dir), n + 1))];
+            }
+        }
+        }
+        
+        return YES;
+    }];
+}
+
+- (void)setPosition:(CGPoint)position flags:(NSUInteger)flags {
+    CGPoint delta = VSub(position, self.position);
+    
+    _node.position = NormalizedPos(position, self.superlayer.bounds);
+    
+    [NVTreeDrawer updateMinMax:position withRadius:self.radius];
+    
+    //[_grid removeObjectInPoint:self.position];
+    [super setPosition:position];
+    //[_grid setObject:self inPoint:position];
+    
+    [self intersectTest: delta];
+    
+    [self updatePath];
     
     if (flags & NVTD_CHILD_NOT_UPDATE)
         return;
         
-    for (NVTNode *child in _node.children) {
-        NVTreeDrawer *item = child.drawer;
-        CGPoint newPoint = VAdd(item.position, delta);
+    for (NVNode *child in _node.children) {
+        NVTreeDrawer *item = child.delegate;
         
-        if (flags & NVTD_CHILD_NOT_UPDATE_POS)
-            newPoint = item.position;
-        
-        [item setPosition:newPoint flags:flags];
+        if (flags & NVTD_CHILD_NOT_UPDATE_POS) {
+            [item updatePath];
+        } else {
+            [item setPosition:VAdd(item.position, delta) flags:flags];
+        }
     }
 }
 
 - (void)setStrategy:(id<NVStrategyDraw>)strategy {
     _strategy = strategy;
     for (NVTNode *item in _node.children) {
-        item.drawer.strategy = strategy;
+        item.delegate.strategy = strategy;
     }
 }
 
 - (void)addChild {
-    NVTNode *child = [[NVTNode alloc] initWithParent:_node];
+    NVNode *child = [[NVNode alloc] initWithParent:_node];
     
-    NVTreeDrawer *childDrawer = [[NVTreeDrawer alloc] initWithNode:child onLayer:self.superlayer withGrid:_grid];
+    NVTreeDrawer *childDrawer = [[NVTreeDrawer alloc] initWithNode:child onLayer:self.superlayer /*withGrid:_grid*/];
     
     childDrawer.strategy = self.strategy;
     
@@ -265,13 +301,13 @@ static CGPoint sMaxPos;
 }
 
 - (void)removeFromSuperlayer {
-    [_grid removeObject:self];
+    //[_grid removeObject:self];
     [_path removeFromSuperlayer];
     [super removeFromSuperlayer];
     
     for (NVTNode *item in _node.children) {
-        if (item.drawer) {
-            [item.drawer removeFromSuperlayer];
+        if (item.delegate) {
+            [item.delegate removeFromSuperlayer];
         }
     }
 }

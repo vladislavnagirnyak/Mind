@@ -11,7 +11,7 @@
 
 @interface NVStrategyDraw() {
     CGPoint _startPoint;
-    NVGrid *_grid;
+    //NVGrid *_grid;
     //NSMutableArray *_levelMap;
 }
 
@@ -19,18 +19,18 @@
 
 @implementation NVStrategyDraw
 
--(instancetype)initWithStart: (CGPoint)point withGrid:(NVGrid*)grid {
+-(instancetype)initWithStart: (CGPoint)point /*withGrid:(NVGrid*)grid*/ {
     self = [super init];
     if (self) {
         _startPoint = point;
-        _grid = grid;
+        //_grid = grid;
         //_levelMap = [[NSMutableArray alloc] init];
     }
     return self;
 }
 
 -(void)addChild:(NVTreeDrawer *)child {
-    CGPoint newPoint = VAdd(child.node.parent.drawer.position, V(0, child.radius * 2 + child.padding));
+    CGPoint newPoint = VAdd([child.node.parent.delegate position], V(0, child.radius * 2 + child.padding));
     [child setPosition:newPoint flags:0];
 }
 
@@ -58,8 +58,19 @@
         CGFloat xOffset = point.x - items.count * (radius * 2 + padding) / 2;
         
         for (NVNode *item in items) {
+            NVTreeDrawer *drawer = item.delegate;
+            /*CGFloat xPOffset = xOffset;
+            if (item.parent) {
+                size_t currentIndex = [item.parent.children indexOfObject:item];
+                size_t childrenCount = item.parent.children.count;
+                NVTreeDrawer *parentDrawer = item.parent.drawer;
+                xPOffset = parentDrawer.position.x - childrenCount * (radius * 2 + padding) / 2;
+                xPOffset += currentIndex * (radius * 2 + padding);
+            }
+            
+            xOffset = xPOffset > xOffset ? xPOffset : xOffset;*/
+            
             CGPoint newPos = V(xOffset, yOffset);
-            NVTreeDrawer *drawer = item.drawer;
             [drawer setPosition:newPos flags: NVTD_CHILD_NOT_UPDATE];
             xOffset += radius * 2 + padding;
         }
