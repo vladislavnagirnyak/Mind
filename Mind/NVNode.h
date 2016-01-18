@@ -26,14 +26,7 @@
 @interface NVNode<__covariant ObjectType:NVNode*> : NSObject<NVNode>
 @end*/
 
-@protocol NVNodeDelegate <NSObject>
-
-- (void)setPosition:(CGPoint)position;
-- (CGPoint)position;
-
-@end
-
-@interface NVNode<__covariant DelegateType:id<NVNodeDelegate>> : NSObject
+@interface NVNode<__covariant DelegateType:CALayer*> : NSObject
 
 @property(weak) NVNode* parent;
 @property NSArray<NVNode*> *children;

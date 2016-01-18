@@ -16,13 +16,14 @@ typedef enum : NSUInteger {
     NVTD_CHILD_NOT_UPDATE = 1 << 1,
 } NVTDFLAGS;
 
-@interface NVTreeDrawer : CALayer<NVNodeDelegate>
+@interface NVTreeDrawer : CALayer
 
 @property NVNode<NVTreeDrawer*> *node;
 @property(readonly) CATextLayer *label;
 @property CGFloat radius;
 @property CGFloat padding;
 @property(nonatomic) id<NVStrategyDraw> strategy;
+@property BOOL isRollUp;
 
 - (instancetype)initWithNode:(NVNode*)node onLayer:(CALayer*)layer /*withGrid:(NVGrid*)grid*/;
 - (void)setPosition:(CGPoint)location flags:(NSUInteger)flags;

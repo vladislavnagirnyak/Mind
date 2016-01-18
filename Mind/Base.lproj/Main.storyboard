@@ -30,7 +30,7 @@
                         <viewControllerLayoutGuide type="top" id="MyK-Uo-prN"/>
                         <viewControllerLayoutGuide type="bottom" id="C0G-BJ-cpc"/>
                     </layoutGuides>
-                    <scrollView key="view" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" ambiguous="YES" maximumZoomScale="10" id="9Ht-8G-H7X">
+                    <scrollView key="view" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" ambiguous="YES" maximumZoomScale="10" keyboardDismissMode="onDrag" id="9Ht-8G-H7X">
                         <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>

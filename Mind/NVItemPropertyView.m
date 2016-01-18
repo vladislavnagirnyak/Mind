@@ -9,6 +9,9 @@
 #import "NVItemPropertyView.h"
 
 @interface NVItemPropertyView() {
+    __weak IBOutlet UIButton *_removeButton;
+    __weak IBOutlet UIButton *_addButton;
+    __weak IBOutlet UIButton *_shButton;
 }
 //@property (weak, nonatomic) IBOutlet UIView *moverPos;
 @end
@@ -16,13 +19,29 @@
 @implementation NVItemPropertyView
 
 //@synthesize onAddTap = _onAddTap, onRemoveTap = _onRemoveTap;
+- (IBAction)onAddTouch:(UIButton *)sender forEvent:(UIEvent *)event {
+    self.onAddTap();
+}
 
-- (IBAction)valueChanged:(UIStepper *)sender {
-    if (sender.value == 1)
-        self.onAddTap();
-    else self.onRemoveTap();
+- (IBAction)onRemoveTouch:(UIButton *)sender forEvent:(UIEvent *)event {
+    self.onRemoveTap();
+}
+
+- (IBAction)onShowHideTap:(UIButton *)sender forEvent:(UIEvent *)event {
+    if (_isExpend)
+        self.onHideTap();
+    else self.onShowTap();
     
-    sender.value = 0;
+    self.isExpend = !_isExpend;
+}
+
+- (void)setIsExpend:(bool)isExpend {
+    _isExpend = isExpend;
+    
+    if (_isExpend) {
+        [_shButton setTitle:@"." forState:UIControlStateNormal];
+    } else
+        [_shButton setTitle:@"..." forState:UIControlStateNormal];
 }
 
 - (void)load {
@@ -32,7 +51,10 @@
     [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-0-[nibView]-0-|" options:0 metrics:nil views:@{@"nibView": nibView}]];
     [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|-0-[nibView]-0-|" options:0 metrics:nil views:@{@"nibView": nibView}]];
     nibView.layer.cornerRadius = 10;
-    self.frame = CGRectMake(0, 0, 110, 40);
+    self.frame = CGRectMake(0, 0, 128, 42);
+    _shButton.layer.cornerRadius = 19;
+    _addButton.layer.cornerRadius = 19;
+    _removeButton.layer.cornerRadius = 19;
     //self.moverPos.layer.cornerRadius = 20;
 }
 

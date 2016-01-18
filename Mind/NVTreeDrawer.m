@@ -21,10 +21,11 @@ static CGPoint sMaxPos;
 
 @interface NVTreeDrawer() {
     //NVGrid *_grid;
+    CGPoint _posRollUp;
 }
 
-@property (readonly) CAShapeLayer *path;
-@property NVTreeDrawer *parent;
+@property(readonly) CAShapeLayer *path;
+@property(readonly, nonatomic) NVTreeDrawer *parent;
 
 @end
 
@@ -48,12 +49,6 @@ static CGPoint sMaxPos;
     return nil;
 }
 
-- (void)setParent:(NVTreeDrawer *)parent {
-    if (_node.parent) {
-        _node.parent.delegate = parent;
-    }
-}
-
 - (instancetype)initWithNode:(NVNode*)node onLayer:(CALayer*)layer /*withGrid:(NVGrid *) grid*/ {
     self = [self init];
     if (self) {
@@ -63,9 +58,10 @@ static CGPoint sMaxPos;
         
         self.label.string = _node.value;
         
-        CGPoint pos = UnnormalizedPos(node.position, layer.bounds);
-        
+        CGPoint normPos = _node.position;
+        CGPoint pos = UnnormalizedPos(_node.position, layer.bounds);
         [self setPosition:pos flags:NVTD_CHILD_NOT_UPDATE];
+        _node.position = normPos;
         
         if (_node.parent) {
             [layer addSublayer:self.path];
@@ -98,7 +94,7 @@ static CGPoint sMaxPos;
 
 - (CATextLayer *)label {
     if (!_label) {
-        _label = [CATextLayer new];
+        _label = [CATextLayer layer];
         _label.foregroundColor = [UIColor blackColor].CGColor;
         _label.frame = CGRectMake(0, self.frame.size.height / 2 - 10, 100, 20);
         _label.font = (__bridge CFTypeRef)@"ArialMT";
@@ -112,10 +108,10 @@ static CGPoint sMaxPos;
 
 - (CAShapeLayer *)path {
     if (!_path) {
-        _path = [CAShapeLayer new];
-        _path.lineWidth = 1.0;
+        _path = [CAShapeLayer layer];
+        _path.lineWidth = 2.0;
         _path.strokeColor = [UIColor blackColor].CGColor;
-        _path.zPosition = 1.0;
+        _path.zPosition = -1.0;
         _path.fillColor = [UIColor colorWithWhite:1 alpha:0].CGColor;
     }
     
@@ -215,33 +211,32 @@ static CGPoint sMaxPos;
             
         }
         
-        [path addLineToPoint:VAdd(self.position, VMulN(VNegate(normDir), self.radius))];
+        CGPoint endPoint = VAdd(self.position, VMulN(VNegate(normDir), self.radius));
+        [path addLineToPoint:endPoint];
         
         self.path.path = path.CGPath;
     }
 }
 
-- (void)intersectTest:(CGPoint)delta {
-    __block CGPoint position = self.position;
-
-    NVCircle c = NVCircleMake(position, self.radius);
+- (void)intersectTest {
+    NVCircle c = NVCircleMake(self.position, self.radius + sNVTreeNodePadding / 2);
     
     NVNode *root = [_node findRoot];
     
-    [root foreach:^BOOL(NVNode *node) {
+    [root foreach:^BOOL(NVTNode *node) {
         if (node != _node) {
             NVTreeDrawer *item = node.delegate;
         
-        NVCircle c1 = NVCircleMake(item.position, item.radius);
+        NVCircle c1 = NVCircleMake(item.position, item.radius + sNVTreeNodePadding / 2);
         
         if (IntersectCircleCircle(c, c1)) {
             CGPoint dir = VSub(c1.center, c.center);
-            CGFloat n = (c.radius + c1.radius - VLength(dir)) / 2;
             
             if ([_node onPath:item.node]) {
-                [self setPosition: VSub(c1.center, VMulN(VNormalize(dir), c.radius + c1.radius + 1))];
+                self.position = VSub(c1.center, VMulN(VNormalize(dir), c.radius + c1.radius + 1));
             } else {
-                [item setPosition: VAdd(c1.center, VMulN(VNormalize(dir), n + 1))];
+                CGFloat n = (c.radius + c1.radius - VLength(dir)) / 2;
+                node.delegate.position = VAdd(c1.center, VMulN(VNormalize(dir), n + 1));
             }
         }
         }
@@ -253,28 +248,28 @@ static CGPoint sMaxPos;
 - (void)setPosition:(CGPoint)position flags:(NSUInteger)flags {
     CGPoint delta = VSub(position, self.position);
     
-    _node.position = NormalizedPos(position, self.superlayer.bounds);
-    
-    [NVTreeDrawer updateMinMax:position withRadius:self.radius];
-    
     //[_grid removeObjectInPoint:self.position];
     [super setPosition:position];
     //[_grid setObject:self inPoint:position];
     
-    [self intersectTest: delta];
+    [self intersectTest];
+    
+    _node.position = NormalizedPos(self.position, self.superlayer.bounds);
+    
+    [NVTreeDrawer updateMinMax:self.position withRadius:self.radius];
     
     [self updatePath];
     
-    if (flags & NVTD_CHILD_NOT_UPDATE)
+    if (flags & NVTD_CHILD_NOT_UPDATE || _isRollUp)
         return;
         
-    for (NVNode *child in _node.children) {
+    for (NVTNode *child in _node.children) {
         NVTreeDrawer *item = child.delegate;
         
         if (flags & NVTD_CHILD_NOT_UPDATE_POS) {
             [item updatePath];
         } else {
-            [item setPosition:VAdd(item.position, delta) flags:flags];
+            item.position = VAdd(item.position, delta);
         }
     }
 }
@@ -310,6 +305,100 @@ static CGPoint sMaxPos;
             [item.delegate removeFromSuperlayer];
         }
     }
+}
+
+- (void)setIsRollUp:(BOOL)isRollUp {
+    if (_isRollUp == isRollUp)
+        return;
+    
+    _isRollUp = isRollUp;
+    
+    if (_isRollUp) {
+        _posRollUp = self.position;
+        for (NVTNode *child in _node.children)
+            [child.delegate rollUp];
+    } else {
+        CGPoint delta = VSub(self.position, _posRollUp);
+        for (NVTNode *child in _node.children)
+            [child.delegate expand:delta];
+    }
+}
+
+- (void)animationDidStop:(CABasicAnimation *)anim finished:(BOOL)flag {
+    /*if ([anim.keyPath isEqual: @"position"]) {
+        if (self.parent.isRollUp) {
+            self.hidden = YES;
+            _path.hidden = YES;
+            [super setPosition:self.parent.position];
+        } else {
+            self.hidden = NO;
+            _path.hidden = NO;
+            [super setPosition:UnnormalizedPos(_node.position, self.superlayer.bounds)];
+        }
+    }*/
+}
+
+- (void)rollUp {
+    _path.hidden = YES;
+    self.opacity = 0.0;
+    CGPoint pos = self.position;
+    
+    if (self.parent.isRollUp) {
+        CABasicAnimation *animPos = [CABasicAnimation animationWithKeyPath:@"position"];
+        animPos.fromValue = [NSValue valueWithCGPoint: pos];
+        animPos.toValue = [NSValue valueWithCGPoint: self.parent.position];
+        animPos.duration = 2.0;
+        animPos.beginTime = 0.0;
+        animPos.removedOnCompletion = YES;
+        animPos.delegate = self;
+        animPos.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
+        [self addAnimation:animPos forKey:@"animPos"];
+        
+        CABasicAnimation *animOpac = [CABasicAnimation animationWithKeyPath:@"opacity"];
+        animOpac.fromValue = @(1.0);
+        animOpac.toValue = @(0.0);
+        animOpac.duration = 1.1;
+        animOpac.beginTime = 0.0;
+        animOpac.removedOnCompletion = YES;
+        //[self addAnimation:animOpac forKey:@"animOpac"];
+        //[_path addAnimation:animOpac forKey:@"animOpac"];
+        [self addAnimation:animOpac forKey:@"animOpaci"];
+    }
+    
+    for (NVTNode *child in _node.children) {
+        [child.delegate rollUp];
+    }
+    
+    /*
+     CAAnimationGroup *group = [CAAnimationGroup animation];
+     [group setDuration:10.0];
+     [group setAnimations:@[posAnimation, borderWidthAnimation]];*/
+}
+
+- (void)expand:(CGPoint)delta {
+    if (self.parent.isRollUp) {
+        [super setPosition:self.parent.position];
+    } else {
+        
+        CGPoint pos = UnnormalizedPos(_node.position, self.superlayer.bounds);
+        
+        [super setPosition:pos];
+        
+        CABasicAnimation *animPos = [CABasicAnimation animationWithKeyPath:@"position"];
+        animPos.fromValue = [NSValue valueWithCGPoint: self.parent.position];
+        animPos.toValue = [NSValue valueWithCGPoint: pos];
+        animPos.duration = 2.0;
+        animPos.beginTime = 0.0;
+        animPos.removedOnCompletion = YES;
+        animPos.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseIn];
+        [self addAnimation:animPos forKey:@"animPos"];
+        
+        _path.hidden = NO;
+        self.opacity = 1.0;
+    }
+    
+    for (NVTNode *child in _node.children)
+        [child.delegate expand:delta];
 }
 
 @end

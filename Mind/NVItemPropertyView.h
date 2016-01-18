@@ -15,5 +15,9 @@ typedef void(^OnTapBlock)();
 
 @property(copy) OnTapBlock onAddTap;
 @property(copy) OnTapBlock onRemoveTap;
+@property(copy) OnTapBlock onShowTap;
+@property(copy) OnTapBlock onHideTap;
+
+@property(nonatomic) bool isExpend;
 
 @end

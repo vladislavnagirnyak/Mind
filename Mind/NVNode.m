@@ -45,14 +45,6 @@
     }
 }
 
-- (void)setPosition:(CGPoint)position {
-    _position = position;
-    
-    /*if (_delegate) {
-        [_delegate setPosition:_position];
-    }*/
-}
-
 - (instancetype)initWithDictionary:(NSDictionary *)dictionary withParent:(NVNode*)parent {
     self = [self initWithParent:parent];
     if (self) {

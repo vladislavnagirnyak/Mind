@@ -12,17 +12,15 @@
 
 @protocol NVStrategyDraw <NSObject>
 
--(void)draw:(id)data;
--(void)addChild:(id)child;
+- (void)update:(id)data;
+- (void)addChild:(id)child;
 
 @end
 
-@class NVTreeDrawer;
-
 @interface NVStrategyDraw : NSObject<NVStrategyDraw>
 
--(instancetype)initWithStart: (CGPoint)point /*withGrid:(NVGrid*)grid*/;
--(void)draw:(NVTreeDrawer*)data;
--(void)addChild:(NVTreeDrawer*)child;
+- (instancetype)initWithStart: (CGPoint)point /*withGrid:(NVGrid*)grid*/;
+- (void)update:(id)data;
+- (void)addChild:(id)child;
 
 @end

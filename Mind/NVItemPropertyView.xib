@@ -3,36 +3,69 @@
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="9529"/>
-        <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
     </dependencies>
     <objects>
-        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="NVItemPropertyView"/>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="NVItemPropertyView">
+            <connections>
+                <outlet property="_addButton" destination="6aP-Ks-Yid" id="yhV-7U-UJ8"/>
+                <outlet property="_removeButton" destination="Noz-9B-ql3" id="JQp-5T-E8W"/>
+                <outlet property="_shButton" destination="9MC-u6-gQC" id="9hx-P9-11G"/>
+            </connections>
+        </placeholder>
         <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
         <view contentMode="scaleToFill" id="iN0-l3-epB">
             <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
             <subviews>
-                <stepper opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" minimumValue="-1" maximumValue="1" translatesAutoresizingMaskIntoConstraints="NO" id="HFx-RZ-VUn">
-                    <rect key="frame" x="253" y="285" width="94" height="29"/>
-                    <rect key="contentStretch" x="0.0" y="0.0" width="0.5" height="0.5"/>
+                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Noz-9B-ql3">
+                    <rect key="frame" x="319" y="281" width="38" height="38"/>
+                    <color key="backgroundColor" red="1" green="0.0" blue="0.051290923323739968" alpha="0.19919104609929078" colorSpace="calibratedRGB"/>
+                    <constraints>
+                        <constraint firstAttribute="width" constant="38" id="e31-lI-0oi"/>
+                        <constraint firstAttribute="height" constant="38" id="t8y-s8-23X"/>
+                    </constraints>
+                    <fontDescription key="fontDescription" type="system" pointSize="20"/>
+                    <state key="normal" title="x"/>
                     <connections>
-                        <action selector="valueChanged:" destination="-1" eventType="valueChanged" id="Hm9-Jl-uqu"/>
+                        <action selector="onRemoveTouch:forEvent:" destination="-1" eventType="touchUpInside" id="chy-xS-kJc"/>
                     </connections>
-                </stepper>
+                </button>
+                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="6aP-Ks-Yid">
+                    <rect key="frame" x="243" y="281" width="38" height="38"/>
+                    <color key="backgroundColor" red="0.020714651711626342" green="1" blue="0.0" alpha="0.20179521276595744" colorSpace="calibratedRGB"/>
+                    <constraints>
+                        <constraint firstAttribute="height" constant="38" id="Q7z-N3-iwe"/>
+                        <constraint firstAttribute="width" constant="38" id="kGF-a0-G0S"/>
+                    </constraints>
+                    <fontDescription key="fontDescription" type="system" pointSize="22"/>
+                    <state key="normal" title="+"/>
+                    <connections>
+                        <action selector="onAddTouch:forEvent:" destination="-1" eventType="touchUpInside" id="Iiu-yt-H9N"/>
+                    </connections>
+                </button>
+                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="9MC-u6-gQC">
+                    <rect key="frame" x="281" y="281" width="38" height="38"/>
+                    <color key="backgroundColor" red="0.0" green="0.016062608867891903" blue="1" alpha="0.20487034574468085" colorSpace="calibratedRGB"/>
+                    <constraints>
+                        <constraint firstAttribute="width" constant="38" id="0xI-x5-tKu"/>
+                        <constraint firstAttribute="height" constant="38" id="6f8-X5-blJ"/>
+                    </constraints>
+                    <fontDescription key="fontDescription" type="system" pointSize="32"/>
+                    <state key="normal" title="-"/>
+                    <connections>
+                        <action selector="onShowHideTap:forEvent:" destination="-1" eventType="touchUpInside" id="Dle-9D-qMf"/>
+                    </connections>
+                </button>
             </subviews>
             <color key="backgroundColor" white="1" alpha="0.70118572695035464" colorSpace="calibratedWhite"/>
             <constraints>
-                <constraint firstAttribute="trailingMargin" secondItem="HFx-RZ-VUn" secondAttribute="trailing" id="Sp1-99-Yzo"/>
-                <constraint firstItem="HFx-RZ-VUn" firstAttribute="centerX" secondItem="iN0-l3-epB" secondAttribute="centerX" id="ZeI-vG-83y"/>
-                <constraint firstItem="HFx-RZ-VUn" firstAttribute="centerY" secondItem="iN0-l3-epB" secondAttribute="centerY" id="fpg-p5-ueK"/>
-                <constraint firstAttribute="bottomMargin" secondItem="HFx-RZ-VUn" secondAttribute="bottom" id="wlP-va-T1A"/>
+                <constraint firstItem="Noz-9B-ql3" firstAttribute="leading" secondItem="9MC-u6-gQC" secondAttribute="trailing" id="Awq-QD-V0W"/>
+                <constraint firstItem="9MC-u6-gQC" firstAttribute="centerY" secondItem="iN0-l3-epB" secondAttribute="centerY" id="BgT-lF-Mdj"/>
+                <constraint firstItem="9MC-u6-gQC" firstAttribute="leading" secondItem="6aP-Ks-Yid" secondAttribute="trailing" id="dJR-MT-IKR"/>
+                <constraint firstItem="9MC-u6-gQC" firstAttribute="centerX" secondItem="iN0-l3-epB" secondAttribute="centerX" id="hyw-GB-Iiu"/>
+                <constraint firstItem="6aP-Ks-Yid" firstAttribute="centerY" secondItem="iN0-l3-epB" secondAttribute="centerY" id="jcW-wa-QBr"/>
+                <constraint firstItem="Noz-9B-ql3" firstAttribute="centerY" secondItem="iN0-l3-epB" secondAttribute="centerY" id="msV-jr-ycn"/>
             </constraints>
-            <variation key="default">
-                <mask key="constraints">
-                    <exclude reference="Sp1-99-Yzo"/>
-                    <exclude reference="wlP-va-T1A"/>
-                </mask>
-            </variation>
             <point key="canvasLocation" x="452" y="347"/>
         </view>
     </objects>

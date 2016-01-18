@@ -7,6 +7,7 @@
 //
 
 #import "NVTree.h"
+#import "NVMath.h"
 
 #define KEY(n) [NSString stringWithFormat:@"%zu", n]
 #define KEY_VALUE(s) [s stringByAppendingString: @"-val"]
@@ -25,6 +26,7 @@
 }
 
 - (void)encodeWithCoder:(NSCoder *)aCoder {
+    [aCoder encodeCGRect:_bounds forKey:@"bounds"];
     //size_t offset = 0;
     [self encodeWithCoder:aCoder withNode:_root /*offset:&offset*/];
 }
@@ -67,6 +69,7 @@
     self = [super init];
     if (self) {
         //size_t offset = 0;
+        _bounds = [aDecoder decodeCGRectForKey:@"bounds"];
         _root = [self createWithCoder:aDecoder withParent:nil/* offset:&offset*/];
     }
     return self;

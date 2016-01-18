@@ -33,6 +33,7 @@ typedef enum : NSUInteger {
     NVItemPropertyView *_itemProp;
     UITextField *_textField;
     //NVStateControllerEnum _state;
+    CGRect _bounds;
     NSMutableArray<id<NVStrategyDraw>> *_strategies;
     
     IBOutlet UITapGestureRecognizer *_tapRecognizer;
@@ -65,12 +66,13 @@ typedef enum : NSUInteger {
         _tree = [NSKeyedUnarchiver unarchiveObjectWithData:mindMap];
     }
     
+    
     NVTreeDrawer *drawer = [[NVTreeDrawer alloc] initWithNode:_tree.root onLayer:_rootView.layer /*withGrid:_grid*/];
     
     drawer.strategy = _strategies.firstObject;
     
     if (!mindMap) {
-        [_strategies.firstObject draw:drawer];
+        [_strategies.firstObject update:drawer];
     }
 }
 
@@ -85,8 +87,20 @@ typedef enum : NSUInteger {
         [self actionWith:sender state:NVS_MOVE_NODE isStart:NO];
     }
     else if (_selected) {
-        [_selected setPosition:VAdd(location, _deltaMove) flags:0];
+        _selected.position = VAdd(location, _deltaMove);
+        //[_selected setPosition:VAdd(location, _deltaMove) flags:0];
+        //[self updateSize];
     }
+}
+
+- (void)updateSize {
+    CGPoint min = [NVTreeDrawer minPoint];
+    CGPoint max = [NVTreeDrawer maxPoint];
+    CGRect r = CGRectMake(min.x, min.y, max.x - min.x, max.y - min.y);
+    UIScrollView *scrollView = self.view;
+    scrollView.contentSize = r.size;
+    CGRect frame = scrollView.frame;
+    //_rootView.bounds = r;
 }
 
 - (IBAction)longPressed:(UILongPressGestureRecognizer *)sender {
@@ -110,13 +124,13 @@ typedef enum : NSUInteger {
 }
 
 - (void)actionWith: (UIGestureRecognizer*)sender state:(NVStateControllerEnum)state isStart:(BOOL)start {
+    if (sender.view == _itemProp)
+        return;
+    
     CGPoint location = [self locationFrom: sender];
     NVTreeDrawer *target = [self getTarget: sender];
     
     _itemProp.hidden = YES;
-    
-    if (!_textField.hidden && _selected)
-        [self actionWith:sender state:NVS_RENAME isStart:NO];
     
     switch (state) {
         case NVS_RENAME:
@@ -142,6 +156,9 @@ typedef enum : NSUInteger {
         case NVS_MOVE_HIERARCHY:
             break;
         case NVS_MOVE_NODE:
+            if (!_textField.hidden && _selected)
+                [self actionWith:sender state:NVS_RENAME isStart:NO];
+            
             if (start) {
                 if ((_selected = target))
                     _deltaMove = VSub(_selected.position, location);
@@ -150,10 +167,14 @@ typedef enum : NSUInteger {
             
             break;
         case NVS_PROPERTY:
+            if (!_textField.hidden && _selected)
+                [self actionWith:sender state:NVS_RENAME isStart:NO];
+            
             if (target) {
                 _itemProp.hidden = NO;
                 [_rootView bringSubviewToFront:_itemProp];
                 _itemProp.center = target.position;
+                _itemProp.isExpend = !target.isRollUp;
                 
                 __weak typeof(_itemProp) wProp = _itemProp;
                 
@@ -167,6 +188,13 @@ typedef enum : NSUInteger {
                     [target.node remove];
                     
                     wProp.hidden = YES;
+                };
+                
+                _itemProp.onHideTap = ^{
+                    target.isRollUp = YES;
+                };
+                _itemProp.onShowTap = ^{
+                    target.isRollUp = NO;
                 };
             }
             break;
@@ -188,15 +216,13 @@ typedef enum : NSUInteger {
 
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer {
     
-    if ((gestureRecognizer == _panRecognizer ||
-        otherGestureRecognizer == _panRecognizer) &&
-        [gestureRecognizer isKindOfClass:[UIPanGestureRecognizer class]] &&
+    if (gestureRecognizer == _panRecognizer &&
         [otherGestureRecognizer isKindOfClass:[UIPanGestureRecognizer class]]) {
         if (_panRecognizer.state == UIGestureRecognizerStateBegan) {
             if ([self getTarget: _panRecognizer])
                 return NO;
         }
-
+        
         if (!_selected) {
             return YES;
         }
@@ -211,7 +237,7 @@ typedef enum : NSUInteger {
 
 - (void)scrollViewDidZoom:(UIScrollView *)scrollView {
     CGFloat scale = scrollView.zoomScale;
-    CGSize size = _rootView.bounds.size;
+    CGSize size = _bounds.size;
     scrollView.contentSize = CGSizeMake(size.width * scale, size.height * scale);
 }
 
@@ -240,6 +266,7 @@ typedef enum : NSUInteger {
     
     _rootView.bounds = CGRectMake(0, 0, max.x - min.x, max.y - min.y);
     _rootView.frame = _rootView.bounds;
+    _bounds = _rootView.bounds;
     
     UIScrollView *scrollView = (UIScrollView*)self.view;
     scrollView.contentSize = _rootView.bounds.size;

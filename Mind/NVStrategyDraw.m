@@ -29,13 +29,37 @@
     return self;
 }
 
--(void)addChild:(NVTreeDrawer *)child {
-    CGPoint newPoint = VAdd([child.node.parent.delegate position], V(0, child.radius * 2 + child.padding));
-    [child setPosition:newPoint flags:0];
+- (void)addChild:(NVNode *)child {
+    child.position = VAdd(child.parent.position, V(0, 50 * 2 + 20));
 }
 
--(void)draw:(NVTreeDrawer*)data {
-    [self drawTopToBottom:data.node inPoint:_startPoint];
+- (void)update:(NVTreeDrawer*)data {
+    __block CGFloat yOffset = _startPoint.y;
+    size_t radius = 50;
+    size_t padding = 20;
+    [data.node foreachLevel:^(NSArray<NVNode *> *items) {
+        CGFloat xOffset = _startPoint.x - items.count * (radius * 2 + padding) / 2;
+        
+        for (NVNode *item in items) {
+            NVTreeDrawer *drawer = item.delegate;
+            /*CGFloat xPOffset = xOffset;
+             if (item.parent) {
+             size_t currentIndex = [item.parent.children indexOfObject:item];
+             size_t childrenCount = item.parent.children.count;
+             NVTreeDrawer *parentDrawer = item.parent.drawer;
+             xPOffset = parentDrawer.position.x - childrenCount * (radius * 2 + padding) / 2;
+             xPOffset += currentIndex * (radius * 2 + padding);
+             }
+             
+             xOffset = xPOffset > xOffset ? xPOffset : xOffset;*/
+            
+            CGPoint newPos = V(xOffset, yOffset);
+            [drawer setPosition:newPos flags: NVTD_CHILD_NOT_UPDATE];
+            xOffset += radius * 2 + padding;
+        }
+        
+        yOffset += radius * 2 + padding;
+    }];
     
     /*[self buildLevelMap:data withStart:data.node.level];
     
@@ -48,35 +72,6 @@
     }
     
     [self drawTopToBottom:data inPoint:_startPoint offsets: xOffsets];*/
-}
-
-- (void)drawTopToBottom:(NVNode*)node inPoint:(CGPoint)point {
-    __block CGFloat yOffset = point.y;
-    size_t radius = 50;
-    size_t padding = 20;
-    [node foreachLevel:^(NSArray<NVNode *> *items) {
-        CGFloat xOffset = point.x - items.count * (radius * 2 + padding) / 2;
-        
-        for (NVNode *item in items) {
-            NVTreeDrawer *drawer = item.delegate;
-            /*CGFloat xPOffset = xOffset;
-            if (item.parent) {
-                size_t currentIndex = [item.parent.children indexOfObject:item];
-                size_t childrenCount = item.parent.children.count;
-                NVTreeDrawer *parentDrawer = item.parent.drawer;
-                xPOffset = parentDrawer.position.x - childrenCount * (radius * 2 + padding) / 2;
-                xPOffset += currentIndex * (radius * 2 + padding);
-            }
-            
-            xOffset = xPOffset > xOffset ? xPOffset : xOffset;*/
-            
-            CGPoint newPos = V(xOffset, yOffset);
-            [drawer setPosition:newPos flags: NVTD_CHILD_NOT_UPDATE];
-            xOffset += radius * 2 + padding;
-        }
-        
-        yOffset += radius * 2 + padding;
-    }];
 }
 
 /*- (void)buildLevelMap: (NVTreeDrawer*)drawer withStart:(size_t)startLevel {
