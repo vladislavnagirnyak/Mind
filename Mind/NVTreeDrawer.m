@@ -16,8 +16,8 @@ typedef NVNode<NVTreeDrawer*> NVTNode;
 
 static double sNVTreeNodePadding = 20;
 static double sNVTreeNodeRadius = 50;
-static CGPoint sMinPos;
-static CGPoint sMaxPos;
+static CGPoint sMin;
+static CGPoint sMax;
 
 @interface NVTreeDrawer() {
     //NVGrid *_grid;
@@ -33,12 +33,8 @@ static CGPoint sMaxPos;
 
 @synthesize label = _label, path = _path;
 
-+ (CGPoint)minPoint {
-    return sMinPos;
-}
-
-+ (CGPoint)maxPoint {
-    return sMaxPos;
++ (CGRect)bounds {
+    return CGRectMake(sMin.x, sMin.y, sMax.x - sMin.x, sMax.y - sMin.y);
 }
 
 - (NVTreeDrawer*)parent {
@@ -59,7 +55,7 @@ static CGPoint sMaxPos;
         self.label.string = _node.value;
         
         CGPoint normPos = _node.position;
-        CGPoint pos = UnnormalizedPos(_node.position, layer.bounds);
+        CGPoint pos = UnnormalizedPos(_node.position, [UIScreen mainScreen].bounds);
         [self setPosition:pos flags:NVTD_CHILD_NOT_UPDATE];
         _node.position = normPos;
         
@@ -84,6 +80,7 @@ static CGPoint sMaxPos;
         self.borderWidth = 1.0;
         self.borderColor = [UIColor blackColor].CGColor;
         self.cornerRadius = sNVTreeNodeRadius;
+        self.bounds = self.frame;
         self.speed = 10.0;
         self.backgroundColor = [UIColor colorWithRed:0.3 + arc4random_uniform(255) / 255.0 green:0.3 + arc4random_uniform(255) / 255.0 blue:0.3 + arc4random_uniform(255) / 255.0 alpha:1.0].CGColor;
     }
@@ -134,12 +131,12 @@ static CGPoint sMaxPos;
     return sNVTreeNodePadding;
 }
 
-+ (void)updateMinMax:(CGPoint)pos withRadius:(CGFloat)radius {
-    sMinPos.x = pos.x < sMinPos.x ? pos.x - radius : sMinPos.x;
-    sMinPos.y = pos.y < sMinPos.y ? pos.y - radius : sMinPos.y;
++ (void)updateBounds:(CGPoint)pos withRadius:(CGFloat)radius {
+    sMin.x = pos.x - radius < sMin.x ? pos.x - radius : sMin.x;
+    sMin.y = pos.y - radius < sMin.y ? pos.y - radius : sMin.y;
     
-    sMaxPos.x = pos.x > sMaxPos.x ? pos.x + radius : sMaxPos.x;
-    sMaxPos.y = pos.y > sMaxPos.y ? pos.y + radius : sMaxPos.y;
+    sMax.x = pos.x + radius > sMax.x ? pos.x + radius : sMax.x;
+    sMax.y = pos.y + radius > sMax.y ? pos.y + radius : sMax.y;
 }
 
 - (void)updatePath {
@@ -223,6 +220,8 @@ static CGPoint sMaxPos;
     
     NVNode *root = [_node findRoot];
     
+    sMin = V(FLT_MAX, FLT_MAX);
+    sMax = V(FLT_MIN, FLT_MIN);
     [root foreach:^BOOL(NVTNode *node) {
         if (node != _node) {
             NVTreeDrawer *item = node.delegate;
@@ -240,6 +239,7 @@ static CGPoint sMaxPos;
             }
         }
         }
+        [NVTreeDrawer updateBounds:node.delegate.position withRadius:node.delegate.radius];
         
         return YES;
     }];
@@ -254,9 +254,7 @@ static CGPoint sMaxPos;
     
     [self intersectTest];
     
-    _node.position = NormalizedPos(self.position, self.superlayer.bounds);
-    
-    [NVTreeDrawer updateMinMax:self.position withRadius:self.radius];
+    _node.position = NormalizedPos(self.position, [UIScreen mainScreen].bounds);
     
     [self updatePath];
     
@@ -380,7 +378,7 @@ static CGPoint sMaxPos;
         [super setPosition:self.parent.position];
     } else {
         
-        CGPoint pos = UnnormalizedPos(_node.position, self.superlayer.bounds);
+        CGPoint pos = UnnormalizedPos(_node.position, [UIScreen mainScreen].bounds);
         
         [super setPosition:pos];
         

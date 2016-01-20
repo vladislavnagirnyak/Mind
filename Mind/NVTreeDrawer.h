@@ -29,7 +29,6 @@ typedef enum : NSUInteger {
 - (void)setPosition:(CGPoint)location flags:(NSUInteger)flags;
 - (void)addChild;
 
-+ (CGPoint)minPoint;
-+ (CGPoint)maxPoint;
++ (CGRect)bounds;
 
 @end

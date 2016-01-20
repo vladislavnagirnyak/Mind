@@ -25,16 +25,18 @@ typedef enum : NSUInteger {
 } NVStateControllerEnum;
 
 @interface ViewController () <UIGestureRecognizerDelegate, UIScrollViewDelegate> {
-    UIView *_rootView;
     NVTree *_tree;
     CGPoint _deltaMove;
+    CGPoint _deltaOffset;
     NVTreeDrawer *_selected;
     //NVGrid *_grid;
     NVItemPropertyView *_itemProp;
     UITextField *_textField;
     //NVStateControllerEnum _state;
-    CGRect _bounds;
     NSMutableArray<id<NVStrategyDraw>> *_strategies;
+    
+    UIView *_rootView;
+    IBOutlet UIScrollView *_scrollView;
     
     IBOutlet UITapGestureRecognizer *_tapRecognizer;
     IBOutlet UITapGestureRecognizer *_doubleTapRecognizer;
@@ -89,18 +91,18 @@ typedef enum : NSUInteger {
     else if (_selected) {
         _selected.position = VAdd(location, _deltaMove);
         //[_selected setPosition:VAdd(location, _deltaMove) flags:0];
-        //[self updateSize];
+        [self updateSize];
     }
 }
 
 - (void)updateSize {
-    CGPoint min = [NVTreeDrawer minPoint];
-    CGPoint max = [NVTreeDrawer maxPoint];
-    CGRect r = CGRectMake(min.x, min.y, max.x - min.x, max.y - min.y);
-    UIScrollView *scrollView = self.view;
-    scrollView.contentSize = r.size;
-    CGRect frame = scrollView.frame;
-    //_rootView.bounds = r;
+    CGRect r = [NVTreeDrawer bounds];
+    _rootView.bounds = r;
+    _scrollView.contentSize = r.size;
+    _rootView.center = V(r.size.width / 2, r.size.height / 2);
+    
+    if (_selected);
+        //_scrollView.contentOffset = VAdd(_selected.position, _deltaOffset);
 }
 
 - (IBAction)longPressed:(UILongPressGestureRecognizer *)sender {
@@ -115,10 +117,9 @@ typedef enum : NSUInteger {
 }
 
 - (CGPoint)locationFrom:(UIGestureRecognizer*)sender {
-    UIScrollView *scrollView = (UIScrollView*)self.view;
-    CGPoint point = [sender locationInView:scrollView];
-    if (scrollView.zoomScale != 1.0) {
-        point = VDivN(point, scrollView.zoomScale);
+    CGPoint point = [sender locationInView:_scrollView];
+    if (_scrollView.zoomScale != 1.0) {
+        point = VDivN(point, _scrollView.zoomScale);
     }
     return point;
 }
@@ -160,8 +161,10 @@ typedef enum : NSUInteger {
                 [self actionWith:sender state:NVS_RENAME isStart:NO];
             
             if (start) {
-                if ((_selected = target))
+                if ((_selected = target)) {
                     _deltaMove = VSub(_selected.position, location);
+                    _deltaOffset = VSub(_scrollView.contentOffset, _selected.position);
+                }
             }
             else _selected = nil;
             
@@ -237,16 +240,18 @@ typedef enum : NSUInteger {
 
 - (void)scrollViewDidZoom:(UIScrollView *)scrollView {
     CGFloat scale = scrollView.zoomScale;
-    CGSize size = _bounds.size;
+    CGSize size = _rootView.bounds.size;
     scrollView.contentSize = CGSizeMake(size.width * scale, size.height * scale);
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
     
+    _rootView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 400, 400)];
+    _rootView.backgroundColor = [UIColor grayColor];
+    [self.view addSubview:_rootView];
+ 
     [_tapRecognizer requireGestureRecognizerToFail:_doubleTapRecognizer];
-    
-    _rootView = self.view.subviews.firstObject;
     
     self.navigationItem.titleView = [[UISegmentedControl alloc] initWithItems:@[@"Top to bottom", @"Custom"]];
     
@@ -258,18 +263,9 @@ typedef enum : NSUInteger {
     [_strategies addObject: [[NVStrategyDraw alloc] initWithStart:V(CGRectGetWidth(_rootView.bounds) / 2.0, _rootView.frame.origin.y + 50) /*withGrid:_grid*/]];
     
     [self onLoad:nil];
+    [self updateSize];
     
     NVTreeDrawer *rootDrawer = _tree.root.delegate;
-    
-    CGPoint min = [NVTreeDrawer minPoint];
-    CGPoint max = [NVTreeDrawer maxPoint];
-    
-    _rootView.bounds = CGRectMake(0, 0, max.x - min.x, max.y - min.y);
-    _rootView.frame = _rootView.bounds;
-    _bounds = _rootView.bounds;
-    
-    UIScrollView *scrollView = (UIScrollView*)self.view;
-    scrollView.contentSize = _rootView.bounds.size;
     
     _itemProp = [[NVItemPropertyView alloc] initWithFrame:rootDrawer.frame];
     _itemProp.hidden = YES;
