@@ -225,6 +225,14 @@ static double sNVTreeNodeRadius = 50;
     }];
 }
 
+- (void)update: (size_t)flags {
+    if (!(flags & NVTD_NOT_INTERSECTION))
+        [self intersectTest];
+    
+    if (!(flags & NVTD_NOT_UPDATE_PATH))
+        [self updatePath];
+}
+
 - (void)setPosition:(CGPoint)position flags:(NSUInteger)flags {
     CGPoint delta = VSub(position, self.position);
     
@@ -252,23 +260,6 @@ static double sNVTreeNodeRadius = 50;
             item.position = VAdd(item.position, delta);
         }
     }
-}
-
-- (void)setStrategy:(id<NVStrategyDraw>)strategy {
-    _strategy = strategy;
-    for (NVTNode *item in _node.children) {
-        item.delegate.strategy = strategy;
-    }
-}
-
-- (void)addChild {
-    NVNode *child = [[NVNode alloc] initWithParent:_node];
-    
-    NVTreeDrawer *childDrawer = [[NVTreeDrawer alloc] initWithNode:child onLayer:self.superlayer /*withGrid:_grid*/];
-    
-    childDrawer.strategy = self.strategy;
-    
-    [self.strategy addChild:childDrawer];
 }
 
 - (void) setPosition:(CGPoint)position {

@@ -24,11 +24,10 @@ typedef enum : NSUInteger {
 @property(readonly) CATextLayer *label;
 @property CGFloat radius;
 @property CGFloat padding;
-@property(nonatomic) id<NVStrategyDraw> strategy;
 @property BOOL isRollUp;
 
 - (instancetype)initWithNode:(NVNode*)node onLayer:(CALayer*)layer /*withGrid:(NVGrid*)grid*/;
 - (void)setPosition:(CGPoint)location flags:(NSUInteger)flags;
-- (void)addChild;
+- (void)update: (size_t)flags;
 
 @end

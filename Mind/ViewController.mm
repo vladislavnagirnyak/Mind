@@ -31,7 +31,8 @@ typedef enum : NSUInteger {
     //NVGrid *_grid;
     NVItemPropertyView *_itemProp;
     UITextField *_textField;
-    NSMutableArray<id<NVStrategyDraw>> *_strategies;
+    NSMutableDictionary<NSString*, id<NVStrategyDraw>> *_strategies;
+    NSString *_currentStrategy;
     
     UIView *_rootView;
     IBOutlet UIScrollView *_scrollView;
@@ -67,23 +68,12 @@ typedef enum : NSUInteger {
     }
     
     
-    NVTreeDrawer *drawer = [[NVTreeDrawer alloc] initWithNode:_tree.root onLayer:_rootView.layer /*withGrid:_grid*/];
-    
-    drawer.strategy = _strategies.firstObject;
-    
-    if (!mindMap) {
-        [_strategies.firstObject update:drawer];
-    }
+    [[NVTreeDrawer alloc] initWithNode:_tree.root onLayer:_rootView.layer /*withGrid:_grid*/];
 }
 
-- (IBAction)topToBottomTap:(UIBarButtonItem *)sender {
-    [_strategies.firstObject update:_tree.root.delegate];
-    [self updateSize];
-}
-
-- (IBAction)circleTap:(UIBarButtonItem *)sender {
-    NVStrategyDrawCircle *s = [[NVStrategyDrawCircle alloc] init];
-    [s update:_tree.root.delegate];
+- (IBAction)changeStrategyTap:(UIBarButtonItem *)sender {
+    _currentStrategy = sender.title;
+    [[_strategies objectForKey:_currentStrategy] update:_tree.root.delegate];
     [self updateSize];
 }
 
@@ -232,7 +222,12 @@ typedef enum : NSUInteger {
                 __weak typeof(_itemProp) wProp = _itemProp;
                 
                 _itemProp.onAddTap = ^{
-                    [target addChild];
+                    NVNode *child = [[NVNode alloc] initWithParent:target.node];
+                    
+                    NVTreeDrawer *childDrawer = [[NVTreeDrawer alloc] initWithNode:child onLayer:_rootView.layer /*withGrid:_grid*/];
+                    
+                    [_strategies[_currentStrategy] addChild:childDrawer];
+                    
                     //wProp.hidden = YES;
                     [self updateSize];
                 };
@@ -310,8 +305,11 @@ typedef enum : NSUInteger {
     //CGFloat cellSize = M_SQRT2 * 50;
     //_grid.cellSize = CGSizeMake(cellSize, cellSize);
     
-    _strategies = [[NSMutableArray alloc] init];
-    [_strategies addObject: [[NVStrategyDrawTopToBottom alloc] initWithStart:V(CGRectGetWidth(_rootView.bounds) / 2.0, _rootView.frame.origin.y + 50) /*withGrid:_grid*/]];
+    _strategies = [[NSMutableDictionary alloc] init];
+    [_strategies setObject:[[NVStrategyDrawTopToBottom alloc] initWithStart:V(CGRectGetWidth(_rootView.bounds) / 2.0, _rootView.frame.origin.y + 50) /*withGrid:_grid*/] forKey:@"Top to bottom"];
+    
+    [_strategies setObject:[[NVStrategyDrawCircle alloc] init] forKey: @"Circle"];
+    _currentStrategy = _strategies.allKeys.firstObject;
     
     [self onLoad:nil];
     [self updateSize];

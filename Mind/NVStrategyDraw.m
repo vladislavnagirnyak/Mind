@@ -50,6 +50,12 @@
         
         yOffset += radius * 2 + padding;
     }];
+    
+    [data.node foreach:^BOOL(NVNode *node) {
+        NVTreeDrawer *item = node.delegate;
+        [item update:NVTD_NOT_INTERSECTION];
+        return YES;
+    }];
 }
 
 @end
@@ -91,10 +97,18 @@
             [item setPosition:offset flags:NVTD_CHILD_NOT_UPDATE | NVTD_NOT_INTERSECTION | NVTD_NOT_UPDATE_PATH];
         }
     }];
+    
+    [data.node foreach:^BOOL(NVNode *node) {
+        NVTreeDrawer *item = node.delegate;
+        [item update:NVTD_NOT_INTERSECTION];
+        return YES;
+    }];
 }
 
 - (void)addChild:(NVTreeDrawer*)child {
-    
+    child.position = VAdd(child.node.parent.delegate.position, V(0, 50 * 2 + 20));
+    child.node.value = [NSString stringWithFormat:@"%lu-%zu", [child.node.parent.children indexOfObject:child.node], child.node.level];
+    child.label.string = child.node.value;
 }
 
 @end

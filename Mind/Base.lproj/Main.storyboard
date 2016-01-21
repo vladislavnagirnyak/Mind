@@ -55,12 +55,12 @@
                         <barButtonItem style="plain" systemItem="flexibleSpace" id="UKt-wG-yQM"/>
                         <barButtonItem title="Top to bottom" id="cEh-da-b8i">
                             <connections>
-                                <action selector="topToBottomTap:" destination="ROd-Zn-xog" id="84b-JR-omw"/>
+                                <action selector="changeStrategyTap:" destination="ROd-Zn-xog" id="yhM-4g-fkV"/>
                             </connections>
                         </barButtonItem>
                         <barButtonItem title="Circle" id="KTb-XI-DMn">
                             <connections>
-                                <action selector="circleTap:" destination="ROd-Zn-xog" id="VHl-87-xxc"/>
+                                <action selector="changeStrategyTap:" destination="ROd-Zn-xog" id="6A1-nb-ltY"/>
                             </connections>
                         </barButtonItem>
                         <barButtonItem style="plain" systemItem="flexibleSpace" id="RB0-PX-5vX"/>
