@@ -50,12 +50,10 @@
     [self addSubview:nibView];
     [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-0-[nibView]-0-|" options:0 metrics:nil views:@{@"nibView": nibView}]];
     [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|-0-[nibView]-0-|" options:0 metrics:nil views:@{@"nibView": nibView}]];
-    nibView.layer.cornerRadius = 10;
-    self.frame = CGRectMake(0, 0, 128, 42);
+    nibView.layer.cornerRadius = 20;
     _shButton.layer.cornerRadius = 19;
     _addButton.layer.cornerRadius = 19;
     _removeButton.layer.cornerRadius = 19;
-    //self.moverPos.layer.cornerRadius = 20;
 }
 
 - (instancetype)initWithFrame:(CGRect)frame

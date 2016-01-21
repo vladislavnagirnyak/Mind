@@ -25,7 +25,6 @@
 		94A2DD261C4052520039345D /* NVTree.m in Sources */ = {isa = PBXBuildFile; fileRef = 94A2DD251C4052520039345D /* NVTree.m */; };
 		94CB5DDA1C3721900019DB35 /* NVStrategyDraw.m in Sources */ = {isa = PBXBuildFile; fileRef = 94CB5DD91C3721900019DB35 /* NVStrategyDraw.m */; };
 		94CB5DDD1C3783CD0019DB35 /* NVMath.c in Sources */ = {isa = PBXBuildFile; fileRef = 94CB5DDB1C3783CD0019DB35 /* NVMath.c */; };
-		94F161641C3EF2F700CC6900 /* NSArray+Collision.m in Sources */ = {isa = PBXBuildFile; fileRef = 94F161631C3EF2F700CC6900 /* NSArray+Collision.m */; };
 		94F6505C1C2EC90700BCB74C /* CGAffineTransformHelper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 94F6505A1C2EC90700BCB74C /* CGAffineTransformHelper.cpp */; };
 /* End PBXBuildFile section */
 
@@ -80,8 +79,6 @@
 		94CB5DD91C3721900019DB35 /* NVStrategyDraw.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NVStrategyDraw.m; sourceTree = "<group>"; };
 		94CB5DDB1C3783CD0019DB35 /* NVMath.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = NVMath.c; sourceTree = "<group>"; };
 		94CB5DDC1C3783CD0019DB35 /* NVMath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NVMath.h; sourceTree = "<group>"; };
-		94F161621C3EF2F700CC6900 /* NSArray+Collision.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSArray+Collision.h"; sourceTree = "<group>"; };
-		94F161631C3EF2F700CC6900 /* NSArray+Collision.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSArray+Collision.m"; sourceTree = "<group>"; };
 		94F6505A1C2EC90700BCB74C /* CGAffineTransformHelper.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CGAffineTransformHelper.cpp; sourceTree = "<group>"; };
 		94F6505B1C2EC90700BCB74C /* CGAffineTransformHelper.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = CGAffineTransformHelper.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -159,8 +156,6 @@
 				94CB5DD91C3721900019DB35 /* NVStrategyDraw.m */,
 				94CB5DDB1C3783CD0019DB35 /* NVMath.c */,
 				94CB5DDC1C3783CD0019DB35 /* NVMath.h */,
-				94F161621C3EF2F700CC6900 /* NSArray+Collision.h */,
-				94F161631C3EF2F700CC6900 /* NSArray+Collision.m */,
 				94A2DD241C4052520039345D /* NVTree.h */,
 				94A2DD251C4052520039345D /* NVTree.m */,
 			);
@@ -327,7 +322,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				94468DA61C2B4B0C0078A505 /* NVTreeDrawer.m in Sources */,
-				94F161641C3EF2F700CC6900 /* NSArray+Collision.m in Sources */,
 				94A2DD261C4052520039345D /* NVTree.m in Sources */,
 				94468D731C2B3ABA0078A505 /* ViewController.mm in Sources */,
 				94CB5DDD1C3783CD0019DB35 /* NVMath.c in Sources */,

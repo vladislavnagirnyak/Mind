@@ -26,40 +26,41 @@
 }
 
 - (void)encodeWithCoder:(NSCoder *)aCoder {
-    [aCoder encodeCGRect:_bounds forKey:@"bounds"];
-    //size_t offset = 0;
-    [self encodeWithCoder:aCoder withNode:_root /*offset:&offset*/];
+    size_t offset = 0;
+    [self encodeWithCoder:aCoder withNode:_root offset:&offset];
 }
 
-- (void)encodeWithCoder:(NSCoder*)aCoder withNode:(NVNode*)node /*offset:(size_t*)offset*/ {
-    /*NSString *key = KEY(*offset++);
+- (void)encodeWithCoder:(NSCoder*)aCoder withNode:(NVNode*)node offset:(size_t*)offset {
+    NSString *key = KEY(*offset);
+    (*offset)++;
     [aCoder encodeObject:node.value forKey:KEY_VALUE(key)];
-    [aCoder encodeCGPoint:node.position forKey:KEY_POSITION(key)];
-    [aCoder encodeObject:@(node.children.count) forKey:KEY_COUNT(key)];*/
+    [aCoder encodeObject:[NSValue valueWithCGPoint:node.position] forKey:KEY_POSITION(key)];
+    [aCoder encodeObject:@(node.children.count) forKey:KEY_COUNT(key)];
     
-    [aCoder encodeObject:node.value];
+    /*[aCoder encodeObject:node.value];
     [aCoder encodeObject:[NSValue valueWithCGPoint:node.position]];
-    [aCoder encodeObject:@(node.children.count)];
+    [aCoder encodeObject:@(node.children.count)];*/
     
     for (NVNode *item in node.children) {
-        [self encodeWithCoder:aCoder withNode:item /*offset:offset*/];
+        [self encodeWithCoder:aCoder withNode:item offset:offset];
     }
 }
 
-- (NVNode*)createWithCoder:(NSCoder *)aDecoder withParent:(NVNode*)parent /*offset:(size_t*)offset*/ {
+- (NVNode*)createWithCoder:(NSCoder *)aDecoder withParent:(NVNode*)parent offset:(size_t*)offset {
     NVNode *node = [[NVNode alloc] initWithParent:parent];
     
-    /*NSString *key = KEY(*offset++);
+    NSString *key = KEY(*offset);
+    (*offset)++;
     node.value = [aDecoder decodeObjectForKey:KEY_VALUE(key)];
     node.position = [[aDecoder decodeObjectForKey:KEY_POSITION(key)] CGPointValue];
-    size_t childrenCount = [[aDecoder decodeObjectForKey:KEY_COUNT(key)] unsignedLongLongValue];*/
+    size_t childrenCount = [[aDecoder decodeObjectForKey:KEY_COUNT(key)] unsignedLongLongValue];
     
-    node.value = [aDecoder decodeObject];
+    /*node.value = [aDecoder decodeObject];
     node.position = [[aDecoder decodeObject] CGPointValue];
-    size_t childrenCount = [[aDecoder decodeObject] unsignedLongLongValue];
+    size_t childrenCount = [[aDecoder decodeObject] unsignedLongLongValue];*/
     
     for (size_t i = 0; i < childrenCount; i++) {
-        [self createWithCoder:aDecoder withParent:node /*offset:offset*/];
+        [self createWithCoder:aDecoder withParent:node offset:offset];
     }
     
     return node;
@@ -68,9 +69,8 @@
 - (instancetype)initWithCoder:(NSCoder *)aDecoder {
     self = [super init];
     if (self) {
-        //size_t offset = 0;
-        _bounds = [aDecoder decodeCGRectForKey:@"bounds"];
-        _root = [self createWithCoder:aDecoder withParent:nil/* offset:&offset*/];
+        size_t offset = 0;
+        _root = [self createWithCoder:aDecoder withParent:nil offset:&offset];
     }
     return self;
 }

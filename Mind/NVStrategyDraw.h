@@ -17,10 +17,12 @@
 
 @end
 
-@interface NVStrategyDraw : NSObject<NVStrategyDraw>
+@interface NVStrategyDrawTopToBottom : NSObject<NVStrategyDraw>
 
 - (instancetype)initWithStart: (CGPoint)point /*withGrid:(NVGrid*)grid*/;
-- (void)update:(id)data;
-- (void)addChild:(id)child;
+
+@end
+
+@interface NVStrategyDrawCircle : NSObject<NVStrategyDraw>
 
 @end

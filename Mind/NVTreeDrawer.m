@@ -10,14 +10,11 @@
 #import "NVNode.h"
 #import <UIKit/UIKit.h>
 #import "NVMath.h"
-#import "NSArray+Collision.h"
 
 typedef NVNode<NVTreeDrawer*> NVTNode;
 
 static double sNVTreeNodePadding = 20;
 static double sNVTreeNodeRadius = 50;
-static CGPoint sMin;
-static CGPoint sMax;
 
 @interface NVTreeDrawer() {
     //NVGrid *_grid;
@@ -32,10 +29,6 @@ static CGPoint sMax;
 @implementation NVTreeDrawer
 
 @synthesize label = _label, path = _path;
-
-+ (CGRect)bounds {
-    return CGRectMake(sMin.x, sMin.y, sMax.x - sMin.x, sMax.y - sMin.y);
-}
 
 - (NVTreeDrawer*)parent {
     if (_node.parent) {
@@ -131,14 +124,6 @@ static CGPoint sMax;
     return sNVTreeNodePadding;
 }
 
-+ (void)updateBounds:(CGPoint)pos withRadius:(CGFloat)radius {
-    sMin.x = pos.x - radius < sMin.x ? pos.x - radius : sMin.x;
-    sMin.y = pos.y - radius < sMin.y ? pos.y - radius : sMin.y;
-    
-    sMax.x = pos.x + radius > sMax.x ? pos.x + radius : sMax.x;
-    sMax.y = pos.y + radius > sMax.y ? pos.y + radius : sMax.y;
-}
-
 - (void)updatePath {
     if (self.parent) {
         UIBezierPath *path = [UIBezierPath new];
@@ -187,7 +172,6 @@ static CGPoint sMax;
             return NSOrderedSame;
         }];
         
-        //[items collision:^(NVTreeDrawer *first, NVTreeDrawer *second) {
         for (NVNode *node in items) {
             NVTreeDrawer *item = node.delegate;
             
@@ -220,8 +204,6 @@ static CGPoint sMax;
     
     NVNode *root = [_node findRoot];
     
-    sMin = V(FLT_MAX, FLT_MAX);
-    sMax = V(FLT_MIN, FLT_MIN);
     [root foreach:^BOOL(NVTNode *node) {
         if (node != _node) {
             NVTreeDrawer *item = node.delegate;
@@ -239,8 +221,6 @@ static CGPoint sMax;
             }
         }
         }
-        [NVTreeDrawer updateBounds:node.delegate.position withRadius:node.delegate.radius];
-        
         return YES;
     }];
 }
@@ -252,11 +232,13 @@ static CGPoint sMax;
     [super setPosition:position];
     //[_grid setObject:self inPoint:position];
     
-    [self intersectTest];
+    if (!(flags & NVTD_NOT_INTERSECTION))
+        [self intersectTest];
     
     _node.position = NormalizedPos(self.position, [UIScreen mainScreen].bounds);
     
-    [self updatePath];
+    if (!(flags & NVTD_NOT_UPDATE_PATH))
+        [self updatePath];
     
     if (flags & NVTD_CHILD_NOT_UPDATE || _isRollUp)
         return;

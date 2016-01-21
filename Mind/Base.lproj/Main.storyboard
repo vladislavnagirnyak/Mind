@@ -9,11 +9,19 @@
         <!--Navigation Controller-->
         <scene sceneID="vQs-25-kiv">
             <objects>
-                <navigationController id="lyp-3e-k4M" sceneMemberID="viewController">
+                <navigationController toolbarHidden="NO" id="lyp-3e-k4M" sceneMemberID="viewController">
+                    <simulatedToolbarMetrics key="simulatedBottomBarMetrics"/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" id="sxL-wT-gAF">
                         <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
+                        <textAttributes key="titleTextAttributes">
+                            <offsetWrapper key="textShadowOffset" horizontal="0.0" vertical="0.0"/>
+                        </textAttributes>
                     </navigationBar>
+                    <toolbar key="toolbar" opaque="NO" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" id="OtP-aV-fVh">
+                        <rect key="frame" x="0.0" y="556" width="600" height="44"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </toolbar>
                     <connections>
                         <segue destination="ROd-Zn-xog" kind="relationship" relationship="rootViewController" id="155-tE-l4w"/>
                     </connections>
@@ -43,7 +51,20 @@
                             <outletCollection property="gestureRecognizers" destination="lws-Jv-VAF" appends="YES" id="R1r-h1-vAc"/>
                         </connections>
                     </scrollView>
-                    <toolbarItems/>
+                    <toolbarItems>
+                        <barButtonItem style="plain" systemItem="flexibleSpace" id="UKt-wG-yQM"/>
+                        <barButtonItem title="Top to bottom" id="cEh-da-b8i">
+                            <connections>
+                                <action selector="topToBottomTap:" destination="ROd-Zn-xog" id="84b-JR-omw"/>
+                            </connections>
+                        </barButtonItem>
+                        <barButtonItem title="Circle" id="KTb-XI-DMn">
+                            <connections>
+                                <action selector="circleTap:" destination="ROd-Zn-xog" id="VHl-87-xxc"/>
+                            </connections>
+                        </barButtonItem>
+                        <barButtonItem style="plain" systemItem="flexibleSpace" id="RB0-PX-5vX"/>
+                    </toolbarItems>
                     <navigationItem key="navigationItem" id="Q6y-Tl-Lfx">
                         <leftBarButtonItems>
                             <barButtonItem systemItem="save" id="M8l-0X-ows">
@@ -51,7 +72,7 @@
                                     <action selector="onSave:" destination="ROd-Zn-xog" id="fDX-cm-a7d"/>
                                 </connections>
                             </barButtonItem>
-                            <barButtonItem title="Load" id="61g-6z-m4D" userLabel="Load">
+                            <barButtonItem title="Load" style="done" id="61g-6z-m4D" userLabel="Load">
                                 <connections>
                                     <action selector="onLoad:" destination="ROd-Zn-xog" id="84u-UO-R1j"/>
                                 </connections>

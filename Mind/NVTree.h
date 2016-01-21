@@ -11,7 +11,6 @@
 
 @interface NVTree : NSObject<NSCoding>
 
-@property CGRect bounds;
 @property(readonly) NVNode *root;
 
 - (instancetype)initWithRoot:(NVNode*)root;

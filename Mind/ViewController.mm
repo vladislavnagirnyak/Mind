@@ -19,20 +19,18 @@
 
 typedef enum : NSUInteger {
     NVS_RENAME,
-    NVS_MOVE_HIERARCHY,
     NVS_MOVE_NODE,
     NVS_PROPERTY,
 } NVStateControllerEnum;
 
-@interface ViewController () <UIGestureRecognizerDelegate, UIScrollViewDelegate> {
+@interface ViewController () <UIGestureRecognizerDelegate, UIScrollViewDelegate, UITextFieldDelegate> {
     NVTree *_tree;
     CGPoint _deltaMove;
-    CGPoint _deltaOffset;
+    //CGPoint _deltaOffset;
     NVTreeDrawer *_selected;
     //NVGrid *_grid;
     NVItemPropertyView *_itemProp;
     UITextField *_textField;
-    //NVStateControllerEnum _state;
     NSMutableArray<id<NVStrategyDraw>> *_strategies;
     
     UIView *_rootView;
@@ -78,6 +76,17 @@ typedef enum : NSUInteger {
     }
 }
 
+- (IBAction)topToBottomTap:(UIBarButtonItem *)sender {
+    [_strategies.firstObject update:_tree.root.delegate];
+    [self updateSize];
+}
+
+- (IBAction)circleTap:(UIBarButtonItem *)sender {
+    NVStrategyDrawCircle *s = [[NVStrategyDrawCircle alloc] init];
+    [s update:_tree.root.delegate];
+    [self updateSize];
+}
+
 - (IBAction)panned:(UIPanGestureRecognizer *)sender {
     CGPoint location = [self locationFrom:sender];
     
@@ -96,13 +105,56 @@ typedef enum : NSUInteger {
 }
 
 - (void)updateSize {
-    CGRect r = [NVTreeDrawer bounds];
-    _rootView.bounds = r;
-    _scrollView.contentSize = r.size;
-    _rootView.center = V(r.size.width / 2, r.size.height / 2);
+    if (_scrollView.zoomScale != 1.0)
+        return;
     
-    if (_selected);
-        //_scrollView.contentOffset = VAdd(_selected.position, _deltaOffset);
+    __block CGPoint min = V(FLT_MAX, FLT_MAX);
+    __block CGPoint max = V(FLT_MIN, FLT_MIN);
+    
+    [_tree.root foreach:^BOOL(NVNode *node) {
+        NVTreeDrawer *item = node.delegate;
+        CGPoint pos = item.position;
+        CGFloat margin = item.radius;
+        
+        if (pos.x - margin < min.x) {
+            min.x = pos.x - margin;
+        }
+            
+        if (pos.y - margin < min.y) {
+            min.y = pos.y - margin;
+        }
+        
+        if (pos.x + margin > max.x) {
+            max.x = pos.x + margin;
+        }
+        
+        if (pos.y + margin > max.y) {
+            max.y = pos.y + margin;
+        }
+        
+        return YES;
+    }];
+    
+    CGRect b = CGRectMake(min.x, min.y, max.x - min.x, max.y - min.y);
+    CGRect pb = _rootView.bounds;
+    _rootView.bounds = b;
+    _scrollView.contentSize = b.size;
+    _rootView.center = V(b.size.width / 2, b.size.height / 2);
+    
+    /*if (_selected) {
+        CGPoint offset = _scrollView.contentOffset;
+        CGRect screenBounds = [UIScreen mainScreen].bounds;
+        if (b.origin.x + b.size.width > pb.origin.x + pb.size.width) {
+            offset.x = b.size.width - screenBounds.size.width;
+        }
+        
+        if (b.origin.y + b.size.height > pb.origin.y + pb.size.height) {
+            offset.y = b.size.height - screenBounds.size.height;
+        }
+        
+        //_scrollView.contentOffset = offset;
+        [_scrollView setContentOffset:offset animated:YES];
+    }*/
 }
 
 - (IBAction)longPressed:(UILongPressGestureRecognizer *)sender {
@@ -154,8 +206,6 @@ typedef enum : NSUInteger {
                 _selected = nil;
             }
             break;
-        case NVS_MOVE_HIERARCHY:
-            break;
         case NVS_MOVE_NODE:
             if (!_textField.hidden && _selected)
                 [self actionWith:sender state:NVS_RENAME isStart:NO];
@@ -163,7 +213,7 @@ typedef enum : NSUInteger {
             if (start) {
                 if ((_selected = target)) {
                     _deltaMove = VSub(_selected.position, location);
-                    _deltaOffset = VSub(_scrollView.contentOffset, _selected.position);
+                    //_deltaOffset = VSub(_scrollView.contentOffset, _selected.position);
                 }
             }
             else _selected = nil;
@@ -183,12 +233,14 @@ typedef enum : NSUInteger {
                 
                 _itemProp.onAddTap = ^{
                     [target addChild];
-                    wProp.hidden = YES;
+                    //wProp.hidden = YES;
+                    [self updateSize];
                 };
                 
                 _itemProp.onRemoveTap = ^{
                     [target removeFromSuperlayer];
                     [target.node remove];
+                    [self updateSize];
                     
                     wProp.hidden = YES;
                 };
@@ -196,6 +248,7 @@ typedef enum : NSUInteger {
                 _itemProp.onHideTap = ^{
                     target.isRollUp = YES;
                 };
+                
                 _itemProp.onShowTap = ^{
                     target.isRollUp = NO;
                 };
@@ -247,27 +300,25 @@ typedef enum : NSUInteger {
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    _rootView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 400, 400)];
+    _rootView = [[UIView alloc] init];
     _rootView.backgroundColor = [UIColor grayColor];
     [self.view addSubview:_rootView];
  
     [_tapRecognizer requireGestureRecognizerToFail:_doubleTapRecognizer];
-    
-    self.navigationItem.titleView = [[UISegmentedControl alloc] initWithItems:@[@"Top to bottom", @"Custom"]];
     
     //_grid = [[NVGrid alloc] init];
     //CGFloat cellSize = M_SQRT2 * 50;
     //_grid.cellSize = CGSizeMake(cellSize, cellSize);
     
     _strategies = [[NSMutableArray alloc] init];
-    [_strategies addObject: [[NVStrategyDraw alloc] initWithStart:V(CGRectGetWidth(_rootView.bounds) / 2.0, _rootView.frame.origin.y + 50) /*withGrid:_grid*/]];
+    [_strategies addObject: [[NVStrategyDrawTopToBottom alloc] initWithStart:V(CGRectGetWidth(_rootView.bounds) / 2.0, _rootView.frame.origin.y + 50) /*withGrid:_grid*/]];
     
     [self onLoad:nil];
     [self updateSize];
     
     NVTreeDrawer *rootDrawer = _tree.root.delegate;
     
-    _itemProp = [[NVItemPropertyView alloc] initWithFrame:rootDrawer.frame];
+    _itemProp = [[NVItemPropertyView alloc] initWithFrame:CGRectMake(0, 0, 128, 42)];
     _itemProp.hidden = YES;
     [_rootView addSubview:_itemProp];
     
