@@ -89,7 +89,7 @@ typedef enum : NSUInteger {
     }
     else if (_selected) {
         _selected.position = VAdd(location, _deltaMove);
-        //[_selected setPosition:VAdd(location, _deltaMove) flags:0];
+        [_selected update:NVTDU_ALL];
         [self updateSize];
     }
 }
@@ -223,6 +223,8 @@ typedef enum : NSUInteger {
                 
                 _itemProp.onAddTap = ^{
                     NVNode *child = [[NVNode alloc] initWithParent:target.node];
+                    
+                    child.position = V(child.parent.position.x, child.parent.position.y + 100);
                     
                     NVTreeDrawer *childDrawer = [[NVTreeDrawer alloc] initWithNode:child onLayer:_rootView.layer /*withGrid:_grid*/];
                     

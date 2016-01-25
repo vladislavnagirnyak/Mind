@@ -13,12 +13,14 @@
 
 typedef NVNode<NVTreeDrawer*> NVTNode;
 
-static double sNVTreeNodePadding = 20;
-static double sNVTreeNodeRadius = 50;
+static double sPadding = 20;
+static double sRadius = 50;
+static size_t sPathLineWidth = 2;
 
 @interface NVTreeDrawer() {
     //NVGrid *_grid;
-    CGPoint _posRollUp;
+    CGPoint _lastUpdatePos;
+    BOOL _isUpdated;
 }
 
 @property(readonly) CAShapeLayer *path;
@@ -47,10 +49,8 @@ static double sNVTreeNodeRadius = 50;
         
         self.label.string = _node.value;
         
-        CGPoint normPos = _node.position;
-        CGPoint pos = UnnormalizedPos(_node.position, [UIScreen mainScreen].bounds);
-        [self setPosition:pos flags:NVTD_CHILD_NOT_UPDATE];
-        _node.position = normPos;
+        [super setPosition: UnnormalizedPos(_node.position, [UIScreen mainScreen].bounds)];
+        [self update:NVTDU_PATH | NVTDU_INTERSECTION];
         
         if (_node.parent) {
             [layer addSublayer:self.path];
@@ -69,13 +69,14 @@ static double sNVTreeNodeRadius = 50;
 - (instancetype)init {
     self = [super init];
     if (self) {
-        self.frame = CGRectMake(0, 0, sNVTreeNodeRadius * 2, sNVTreeNodeRadius * 2);
+        self.frame = CGRectMake(0, 0, sRadius * 2, sRadius * 2);
         self.borderWidth = 1.0;
         self.borderColor = [UIColor blackColor].CGColor;
-        self.cornerRadius = sNVTreeNodeRadius;
+        self.cornerRadius = sRadius;
         self.bounds = self.frame;
         self.speed = 10.0;
         self.backgroundColor = [UIColor colorWithRed:0.3 + arc4random_uniform(255) / 255.0 green:0.3 + arc4random_uniform(255) / 255.0 blue:0.3 + arc4random_uniform(255) / 255.0 alpha:1.0].CGColor;
+        _isUpdated = YES;
     }
     
     return self;
@@ -99,7 +100,7 @@ static double sNVTreeNodeRadius = 50;
 - (CAShapeLayer *)path {
     if (!_path) {
         _path = [CAShapeLayer layer];
-        _path.lineWidth = 2.0;
+        _path.lineWidth = sPathLineWidth;
         _path.strokeColor = [UIColor blackColor].CGColor;
         _path.zPosition = -1.0;
         _path.fillColor = [UIColor colorWithWhite:1 alpha:0].CGColor;
@@ -109,19 +110,19 @@ static double sNVTreeNodeRadius = 50;
 }
 
 - (void)setRadius:(CGFloat)radius {
-    sNVTreeNodeRadius = radius;
+    sRadius = radius;
 }
 
 - (CGFloat)radius {
-    return sNVTreeNodeRadius;
+    return sRadius;
 }
 
 - (void)setPadding:(CGFloat)padding {
-    sNVTreeNodePadding = padding;
+    sPadding = padding;
 }
 
 - (CGFloat)padding {
-    return sNVTreeNodePadding;
+    return sPadding;
 }
 
 - (void)updatePath {
@@ -140,6 +141,7 @@ static double sNVTreeNodeRadius = 50;
         NVNode *root = [_node findRoot];
         
         NVRay ray = NVRayMake(parent.position, VSub(self.position, parent.position));
+        NVCircle circle = NVCircleMake(self.position, self.radius + sPathLineWidth);
         
         NSMutableArray *items = [[NSMutableArray alloc] init];
         
@@ -149,13 +151,13 @@ static double sNVTreeNodeRadius = 50;
                 if (nodeParent) {
                     NVRay nodeRay = NVRayMake(nodeParent.delegate.position, VSub(node.delegate.position, nodeParent.delegate.position));
                     
-                    if (IntersectCircleRay(NVCircleMake(self.position, self.radius), nodeRay, nil)) {
+                    if (IntersectCircleRay(circle, nodeRay, nil)) {
                         [node.delegate updatePath];
                         return YES;
                     }
                 }
                 
-                if (IntersectCircleRay(NVCircleMake(node.delegate.position, node.delegate.radius), ray, nil))
+                if (IntersectCircleRay(NVCircleMake(node.delegate.position, node.delegate.radius + sPathLineWidth), ray, nil))
                     [items addObject:node];
             }
             return YES;
@@ -175,11 +177,11 @@ static double sNVTreeNodeRadius = 50;
         for (NVNode *node in items) {
             NVTreeDrawer *item = node.delegate;
             
-                NVCircle circle = C(item.position, item.radius);
+                NVCircle circleItem = NVCircleMake(item.position, item.radius + sPathLineWidth);
             
                 NVQuadCurve curve;
-                if (IntersectCircleRay(circle, ray, &curve)) {
-                    CGPoint delta = VMulN(VNormalize(ray.direction), circle.radius / 4);
+                if (IntersectCircleRay(circleItem, ray, &curve)) {
+                    CGPoint delta = VMulN(VNormalize(ray.direction), sPadding / 2);
                     curve.start = VSub(curve.start, delta);
                     curve.end = VAdd(curve.end, delta);
                     //delta = VMulN(VNormalize(VSub(curve.control, circle.center)), circle.radius / 2);
@@ -200,7 +202,7 @@ static double sNVTreeNodeRadius = 50;
 }
 
 - (void)intersectTest {
-    NVCircle c = NVCircleMake(self.position, self.radius + sNVTreeNodePadding / 2);
+    NVCircle c = NVCircleMake(self.position, self.radius + sPadding / 2);
     
     NVNode *root = [_node findRoot];
     
@@ -208,16 +210,18 @@ static double sNVTreeNodeRadius = 50;
         if (node != _node) {
             NVTreeDrawer *item = node.delegate;
         
-        NVCircle c1 = NVCircleMake(item.position, item.radius + sNVTreeNodePadding / 2);
+        NVCircle c1 = NVCircleMake(item.position, item.radius + sPadding / 2);
         
         if (IntersectCircleCircle(c, c1)) {
             CGPoint dir = VSub(c1.center, c.center);
             
             if ([_node onPath:item.node]) {
                 self.position = VSub(c1.center, VMulN(VNormalize(dir), c.radius + c1.radius + 1));
+                [self update:NVTDU_ALL];
             } else {
                 CGFloat n = (c.radius + c1.radius - VLength(dir)) / 2;
                 node.delegate.position = VAdd(c1.center, VMulN(VNormalize(dir), n + 1));
+                [node.delegate update:NVTDU_ALL];
             }
         }
         }
@@ -226,44 +230,38 @@ static double sNVTreeNodeRadius = 50;
 }
 
 - (void)update: (size_t)flags {
-    if (!(flags & NVTD_NOT_INTERSECTION))
+    if (flags & NVTDU_INTERSECTION)
         [self intersectTest];
     
-    if (!(flags & NVTD_NOT_UPDATE_PATH))
-        [self updatePath];
-}
-
-- (void)setPosition:(CGPoint)position flags:(NSUInteger)flags {
-    CGPoint delta = VSub(position, self.position);
+    if (flags & NVTDU_NODE_POS)
+        _node.position = NormalizedPos(self.position, [UIScreen mainScreen].bounds);
     
-    //[_grid removeObjectInPoint:self.position];
-    [super setPosition:position];
-    //[_grid setObject:self inPoint:position];
-    
-    if (!(flags & NVTD_NOT_INTERSECTION))
-        [self intersectTest];
-    
-    _node.position = NormalizedPos(self.position, [UIScreen mainScreen].bounds);
-    
-    if (!(flags & NVTD_NOT_UPDATE_PATH))
+    if (flags & NVTDU_PATH)
         [self updatePath];
     
-    if (flags & NVTD_CHILD_NOT_UPDATE || _isRollUp)
-        return;
-        
-    for (NVTNode *child in _node.children) {
-        NVTreeDrawer *item = child.delegate;
-        
-        if (flags & NVTD_CHILD_NOT_UPDATE_POS) {
-            [item updatePath];
-        } else {
-            item.position = VAdd(item.position, delta);
+    if (flags & NVTDU_CHILD && !_isRollUp) {
+        _isUpdated = YES;
+        CGPoint deltaPos = VSub(self.position, _lastUpdatePos);
+        for (NVTNode *child in _node.children) {
+            if (flags & NVTDU_CHILD_POS) {
+                child.delegate.position = VAdd(child.delegate.position, deltaPos);
+                [child.delegate update:flags];
+            } else {
+                [child.delegate update: NVTDU_PATH];
+            }
         }
     }
 }
 
 - (void) setPosition:(CGPoint)position {
-    [self setPosition:position flags:0];
+    if (_isUpdated)
+        _lastUpdatePos = self.position;
+    
+    [super setPosition:position];
+    
+    _isUpdated = NO;
+    
+    //[self update: NVTDU_ALL];
 }
 
 - (void)removeFromSuperlayer {
@@ -285,11 +283,10 @@ static double sNVTreeNodeRadius = 50;
     _isRollUp = isRollUp;
     
     if (_isRollUp) {
-        _posRollUp = self.position;
         for (NVTNode *child in _node.children)
             [child.delegate rollUp];
     } else {
-        CGPoint delta = VSub(self.position, _posRollUp);
+        CGPoint delta = VSub(self.position, _lastUpdatePos);
         for (NVTNode *child in _node.children)
             [child.delegate expand:delta];
     }
@@ -333,7 +330,7 @@ static double sNVTreeNodeRadius = 50;
         animOpac.removedOnCompletion = YES;
         //[self addAnimation:animOpac forKey:@"animOpac"];
         //[_path addAnimation:animOpac forKey:@"animOpac"];
-        [self addAnimation:animOpac forKey:@"animOpaci"];
+        [self addAnimation:animOpac forKey:@"animOpac"];
     }
     
     for (NVTNode *child in _node.children) {
@@ -366,6 +363,14 @@ static double sNVTreeNodeRadius = 50;
         
         _path.hidden = NO;
         self.opacity = 1.0;
+        
+        CABasicAnimation *animOpac = [CABasicAnimation animationWithKeyPath:@"opacity"];
+        animOpac.fromValue = @(0.0);
+        animOpac.toValue = @(1.0);
+        animOpac.duration = 2.0;
+        animOpac.beginTime = 0.0;
+        animOpac.removedOnCompletion = YES;
+        [self addAnimation:animOpac forKey:@"animOpac"];
     }
     
     for (NVTNode *child in _node.children)

@@ -43,8 +43,7 @@
         for (NVNode *item in items) {
             NVTreeDrawer *drawer = item.delegate;
 
-            CGPoint newPos = V(xOffset, yOffset);
-            [drawer setPosition:newPos flags: NVTD_CHILD_NOT_UPDATE|NVTD_NOT_INTERSECTION|NVTD_NOT_UPDATE_PATH];
+            drawer.position = V(xOffset, yOffset);
             xOffset += radius * 2 + padding;
         }
         
@@ -53,7 +52,7 @@
     
     [data.node foreach:^BOOL(NVNode *node) {
         NVTreeDrawer *item = node.delegate;
-        [item update:NVTD_NOT_INTERSECTION];
+        [item update:NVTDU_PATH | NVTDU_NODE_POS];
         return YES;
     }];
 }
@@ -93,14 +92,13 @@
         
         for (size_t i = 0; i < items.count; i++) {
             NVTreeDrawer *item = items[i].delegate;
-            CGPoint offset = V(sin(i * step) * margin, cos(i * step) * margin);
-            [item setPosition:offset flags:NVTD_CHILD_NOT_UPDATE | NVTD_NOT_INTERSECTION | NVTD_NOT_UPDATE_PATH];
+            item.position = V(sin(i * step) * margin, cos(i * step) * margin);
         }
     }];
     
     [data.node foreach:^BOOL(NVNode *node) {
         NVTreeDrawer *item = node.delegate;
-        [item update:NVTD_NOT_INTERSECTION];
+        [item update:NVTDU_NODE_POS | NVTDU_PATH];
         return YES;
     }];
 }
